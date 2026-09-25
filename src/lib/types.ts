@@ -216,6 +216,18 @@ export type AccessPoint = {
   type: string;
   coordinates: Coordinates;
   source: SourceRecord;
+  evidence?: {
+    siteName?: string;
+    ownership?: string;
+    parkingRecorded?: boolean;
+    userFeeRecorded?: boolean;
+    accessibilityRecorded?: boolean;
+    surface?: string;
+    verifiedDate?: string;
+    photoUrl?: string;
+    informationUrl?: string;
+    officialRecordUrl?: string;
+  };
 };
 
 export type FishingReport = {

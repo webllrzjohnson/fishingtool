@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { exceptionsForLocation } from "@/data/curated/exceptions";
 import { rulesForFmz } from "@/lib/fmz-rules";
@@ -108,6 +109,12 @@ export function LocationRules({
         >
           Open current FMZ {zone} rules
         </a>
+        <Link
+          href="/regulations"
+          className="rounded-xl border border-red-300 bg-white px-4 py-3 text-sm font-black text-red-950"
+        >
+          Browse 2026 regulations library
+        </Link>
       </div>
     </section>
   );

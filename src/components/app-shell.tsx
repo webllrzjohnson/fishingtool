@@ -5,6 +5,7 @@ const links = [
   { href: "/explore", label: "Explore Ontario" },
   { href: "/species", label: "Fish & bait guide" },
   { href: "/rules", label: "Rules check" },
+  { href: "/regulations", label: "2026 regulations" },
   { href: "/trips", label: "Saved trips" },
   { href: "/gear", label: "My gear" },
 ];

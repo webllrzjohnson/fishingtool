@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { withAccessPointLocation } from "@/lib/access-points";
 import type { AccessPoint } from "@/lib/types";
 
 const ACCESS_LAYER =
@@ -12,6 +13,49 @@ const responseSchema = z.object({ features: z.array(featureSchema).default([]) }
 
 function text(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : "Fishing access";
+}
+
+function optionalText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function recordedYes(value: unknown) {
+  return typeof value === "string" && value.trim().toLowerCase() === "yes" ? true : undefined;
+}
+
+function recordedValue(value: unknown) {
+  const parsed = optionalText(value);
+  return parsed && !["unknown", "no reliable"].includes(parsed.toLowerCase()) ? parsed : undefined;
+}
+
+function officialUrl(value: unknown) {
+  const parsed = optionalText(value);
+  try {
+    return parsed && ["http:", "https:"].includes(new URL(parsed).protocol) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function parseOntarioGisDate(value: unknown) {
+  const timestamp = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  if (!Number.isFinite(timestamp)) return undefined;
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString().slice(0, 10);
+}
+
+function officialRecordUrl(ogfId: unknown) {
+  if (typeof ogfId !== "number" && typeof ogfId !== "string") return undefined;
+  const id = String(ogfId);
+  if (!/^\d+$/.test(id)) return undefined;
+  const params = new URLSearchParams({
+    f: "pjson",
+    where: `OGF_ID=${id}`,
+    outFields: "*",
+    returnGeometry: "true",
+    outSR: "4326",
+  });
+  return `${ACCESS_LAYER}?${params}`;
 }
 
 const FMZ_LAYER =
@@ -72,7 +116,10 @@ export async function fetchNearbyAccessPoints(
     next: { revalidate: 86_400 },
   });
   if (!response.ok) throw new Error(`Ontario GIS returned ${response.status}`);
-  return parseAccessFeatures(await response.json());
+  return withAccessPointLocation(
+    { latitude, longitude },
+    parseAccessFeatures(await response.json()),
+  );
 }
 
 export function parseFmzZoneId(raw: unknown): string | null {
@@ -95,6 +142,18 @@ export function parseAccessFeatures(raw: unknown): AccessPoint[] {
           url: "https://data.ontario.ca/dataset/fishing-access-points",
           lastVerified: "2026-08-30",
           kind: "official",
+        },
+        evidence: {
+          siteName: optionalText(feature.attributes.SITE_NAME),
+          ownership: recordedValue(feature.attributes.SITE_OWNERSHIP_TYPE),
+          parkingRecorded: recordedYes(feature.attributes.PARKING_PRESENCE_FLG),
+          userFeeRecorded: recordedYes(feature.attributes.USER_FEE_FLG),
+          accessibilityRecorded: recordedYes(feature.attributes.ACCESSIBILITY_FLG),
+          surface: recordedValue(feature.attributes.MATERIAL_TYPE),
+          verifiedDate: parseOntarioGisDate(feature.attributes.SITE_LAST_VERIFICATION_DATE),
+          photoUrl: officialUrl(feature.attributes.SITE_PHOTO_URL),
+          informationUrl: officialUrl(feature.attributes.ADDITIONAL_INFORMATION_URL),
+          officialRecordUrl: officialRecordUrl(feature.attributes.OGF_ID),
         },
       },
     ];

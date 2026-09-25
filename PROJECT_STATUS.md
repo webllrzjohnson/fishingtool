@@ -1,6 +1,6 @@
 # Fishing Tool — Project Status
 
-_Last updated: 2026-08-31_
+_Last updated: 2026-09-24_
 
 ## Snapshot
 
@@ -18,6 +18,7 @@ _Last updated: 2026-08-31_
 - Open location pages with access, species, weather, official nearby access points, and FMZ guidance
 - Use a species/bait guide with gear-fit notes for the Ugly Stik GX2 combo
 - Check date-aware zone-wide windows for all 20 FMZs; waterbody exceptions still require official confirmation
+- Browse a searchable 2026 regulations library with source-backed PDF citations and an FMZ zone navigator
 - Save trips and checklists in the browser
 - Install as a PWA in production
 
@@ -26,6 +27,7 @@ _Last updated: 2026-08-31_
 ```bash
 npm test
 npm run data:validate
+npm run data:validate:regulations
 npm run lint
 npm run build
 ```

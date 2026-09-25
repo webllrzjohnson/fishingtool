@@ -54,6 +54,15 @@ export default async function LocationPage({ params, searchParams }: Props) {
           </div>
           <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">{location.name}</h1>
           <p className="mt-4 text-lg leading-8 text-slate-600">{location.accessNotes}</p>
+          {location.coordinates ? (
+            <section className="mt-6" aria-label={`${location.name} map`}>
+              <DiscoveryMap
+                locations={[location]}
+                selectedId={location.id}
+                className="h-[300px] sm:h-[360px] lg:h-[420px]"
+              />
+            </section>
+          ) : null}
         </div>
         <SaveTripPanel
           location={location}
@@ -105,11 +114,6 @@ export default async function LocationPage({ params, searchParams }: Props) {
         </InfoCard>
       </div>
 
-      {location.coordinates ? (
-        <section className="mt-6">
-          <DiscoveryMap locations={[location]} selectedId={location.id} />
-        </section>
-      ) : null}
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <h2 className="text-2xl font-black">7-day shore forecast</h2>

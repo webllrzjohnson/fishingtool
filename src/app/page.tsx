@@ -69,7 +69,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-16 grid gap-5 lg:grid-cols-3">
+        <section className="mt-16 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {[
             {
               title: "Find the right water",
@@ -85,9 +85,15 @@ export default function Home() {
             },
             {
               title: "Check before you keep",
-              body: "Use date-aware guidance, then verify waterbody exceptions on Ontario's official sources.",
+              body: "Run a date-aware rules check for your FMZ, licence, and target species.",
               href: "/rules",
-              label: "Check regulations",
+              label: "Open rules check",
+            },
+            {
+              title: "Browse the 2026 library",
+              body: "Search source-backed licence, bait, BMZ, and FMZ topics from the official regulations summary.",
+              href: "/regulations",
+              label: "Open regulations library",
             },
           ].map((item) => (
             <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

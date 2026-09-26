@@ -2,6 +2,8 @@ import { SpotFinder } from "@/components/spots/spot-finder";
 import { fetchSpotDetail } from "@/lib/spots/detail";
 import { fetchWaterbodyByLid } from "@/lib/sources/ontario-waterbodies";
 import type { SpotDetail } from "@/lib/spots/detail";
+import type { SuggestShareState } from "@/components/spots/spot-suggest";
+import type { SuggestMode } from "@/lib/spots/suggest";
 
 export const metadata = {
   title: "Find a fishing spot in Ontario",
@@ -41,6 +43,30 @@ async function resolveSpot(params: Record<string, string | string[] | undefined>
   }
 }
 
+function resolveSuggest(params: Record<string, string | string[] | undefined>): SuggestShareState | undefined {
+  const read = (key: string) => {
+    const value = params[key];
+    return Array.isArray(value) ? value[0] : value;
+  };
+  if (read("suggest") !== "1") return undefined;
+  const latitude = Number(read("olat"));
+  const longitude = Number(read("olon"));
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return undefined;
+  const mode: SuggestMode = read("mode") === "distance" ? "distance" : "drive";
+  const range = Number(read("range"));
+  const label = read("oname")?.trim() || "Shared start";
+  return {
+    origin: {
+      kind: label === "Your location" ? "gps" : "place",
+      label,
+      coordinates: { latitude, longitude },
+    },
+    mode,
+    range: Number.isFinite(range) && range > 0 ? range : mode === "distance" ? 50 : 60,
+    species: read("species") ?? "",
+  };
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -48,6 +74,7 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const initialSpot: SpotDetail | undefined = await resolveSpot(params);
+  const initialSuggest = resolveSuggest(params);
 
   return (
     <>
@@ -67,7 +94,7 @@ export default async function Home({
       </section>
 
       <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
-        <SpotFinder initialSpot={initialSpot} />
+        <SpotFinder initialSpot={initialSpot} initialSuggest={initialSuggest} />
       </div>
     </>
   );

@@ -5,11 +5,35 @@ import { officialFmzUrl, rulesForFmz } from "@/lib/fmz-rules";
 import { evaluateRule } from "@/lib/regulations/evaluate";
 import type { FmzId, LicenceType } from "@/lib/types";
 
-export function RulesChecker({ initialFmz = "fmz-16" }: { initialFmz?: FmzId }) {
+function localToday() {
+  const date = new Date();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function speciesIndexFor(fmz: FmzId, speciesId?: string) {
+  if (!speciesId) return 0;
+  const needle = speciesId.toLowerCase();
+  const index = rulesForFmz(fmz).findIndex(
+    (rule) => rule.speciesId === needle || rule.species.toLowerCase() === needle,
+  );
+  return index >= 0 ? index : 0;
+}
+
+export function RulesChecker({
+  initialFmz = "fmz-16",
+  initialSpeciesId,
+  initialDate,
+}: {
+  initialFmz?: FmzId;
+  initialSpeciesId?: string;
+  initialDate?: string;
+}) {
   const [fmz, setFmz] = useState<FmzId>(initialFmz);
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(initialDate ?? localToday());
   const [licence, setLicence] = useState<LicenceType>("sport");
-  const [speciesIndex, setSpeciesIndex] = useState(0);
+  const [speciesIndex, setSpeciesIndex] = useState(() => speciesIndexFor(initialFmz, initialSpeciesId));
   const [hasExceptions, setHasExceptions] = useState(false);
   const rules = rulesForFmz(fmz);
   const rule = rules[Math.min(speciesIndex, Math.max(0, rules.length - 1))];

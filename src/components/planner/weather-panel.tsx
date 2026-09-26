@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { shoreCondition, windDirectionLabel } from "@/lib/sources/weather";
+import { shoreCondition, windDirectionLabel, bestShoreWindow } from "@/lib/sources/weather";
 import type { Coordinates, WeatherForecast } from "@/lib/types";
 import { AsyncState } from "@/components/ui/async-state";
 import { Callout } from "@/components/ui/card";
@@ -72,12 +72,21 @@ export function WeatherPanel({ coordinates, tripDate }: { coordinates?: Coordina
   const representative = hours[Math.min(2, hours.length - 1)];
   const condition = shoreCondition(representative);
   const conditionTone = condition.level === "good" ? "emerald" : condition.level === "caution" ? "amber" : "red";
+  const day = hours[0]?.time.slice(0, 10) ?? "";
+  const windowLine = bestShoreWindow(
+    forecast.hours.filter((hour) => hour.time.startsWith(day)),
+    {
+      sunrise: forecast.sunrise.find((value) => value.startsWith(day)),
+      sunset: forecast.sunset.find((value) => value.startsWith(day)),
+    },
+  );
 
   return (
     <div>
       <Callout tone={conditionTone}>
         <span className="font-black">{condition.label}</span>
         <span className="mt-1 block text-sm font-normal">{condition.reason}</span>
+        {windowLine ? <span className="mt-2 block text-sm font-bold">{windowLine}</span> : null}
       </Callout>
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {hours.slice(0, 8).map((hour) => (

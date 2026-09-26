@@ -122,6 +122,30 @@ export const speciesImageCatalog: Record<string, SpeciesImage> = {
     license: "Public Domain",
     sourceUrl: "https://commons.wikimedia.org/wiki/File:FMIB_41803_Channel_Cat_(Ictalurus_punctatus_Rafinesque).jpeg",
   },
+  "rock-bass": {
+    alt: "Rock bass side illustration",
+    localSrc: "/species/rock-bass.jpg",
+    remoteSrc: "https://upload.wikimedia.org/wikipedia/commons/9/9e/FMIB_39180_Rock_Bass_%28Ambloplites_rupestris%29.jpeg",
+    credit: "Freshwater and Marine Image Bank, University of Washington",
+    license: "Public Domain",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:FMIB_39180_Rock_Bass_(Ambloplites_rupestris).jpeg",
+  },
+  pumpkinseed: {
+    alt: "Pumpkinseed side illustration",
+    localSrc: "/species/pumpkinseed.jpg",
+    remoteSrc: "https://upload.wikimedia.org/wikipedia/commons/4/40/Lepomis_gibbosus.jpg",
+    credit: "Public domain, via Wikimedia Commons",
+    license: "Public Domain",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Lepomis_gibbosus.jpg",
+  },
+  bluegill: {
+    alt: "Bluegill side illustration",
+    localSrc: "/species/bluegill.jpg",
+    remoteSrc: "https://upload.wikimedia.org/wikipedia/commons/5/5b/FMIB_51942_Blue-Gill%2C_Lepomis_pallidus_%28Mitchill%29_Potomac_River.jpeg",
+    credit: "Freshwater and Marine Image Bank, University of Washington",
+    license: "Public Domain",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:FMIB_51942_Blue-Gill,_Lepomis_pallidus_(Mitchill)_Potomac_River.jpeg",
+  },
 };
 
 export function getSpeciesImage(speciesId: string): SpeciesImage | undefined {

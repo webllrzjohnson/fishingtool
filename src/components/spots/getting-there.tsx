@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/card";
 import { distanceBetweenKm, directionFrom } from "@/lib/access-points";
@@ -10,6 +10,7 @@ import {
   formatDistance,
   googleDirectionsUrl,
 } from "@/lib/spots/directions";
+import { formatDriveTimeEstimate } from "@/lib/spots/suggest";
 import type { Coordinates } from "@/lib/types";
 
 type Status = "idle" | "locating" | "denied" | "unsupported" | "failed";
@@ -17,6 +18,8 @@ type Status = "idle" | "locating" | "denied" | "unsupported" | "failed";
 export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: string }) {
   const [origin, setOrigin] = useState<Coordinates | null>(null);
   const [status, setStatus] = useState<Status>("idle");
+  const [drive, setDrive] = useState<{ minutes: number; source: "road" | "estimate" } | null>(null);
+  const [drivePending, setDrivePending] = useState(false);
 
   function locate() {
     if (!("geolocation" in navigator)) {
@@ -37,6 +40,35 @@ export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: 
     );
   }
 
+  useEffect(() => {
+    if (!origin) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      lat: origin.latitude.toFixed(5),
+      lon: origin.longitude.toFixed(5),
+      dlat: spot.latitude.toFixed(5),
+      dlon: spot.longitude.toFixed(5),
+    });
+    setDrivePending(true);
+    fetch(`/api/spots/drive?${params}`, { signal: controller.signal })
+      .then(async (response) => {
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error ?? "Drive time unavailable");
+        return body as { minutes: number; source: "road" | "estimate" };
+      })
+      .then((body) => {
+        setDrive(body);
+      })
+      .catch((reason) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setDrive(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDrivePending(false);
+      });
+    return () => controller.abort();
+  }, [origin, spot.latitude, spot.longitude]);
+
   const distanceKm = origin ? distanceBetweenKm(origin, spot) : undefined;
   const bearing = origin ? directionFrom(origin, spot) : undefined;
 
@@ -45,7 +77,9 @@ export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: 
       {origin && distanceKm !== undefined && bearing ? (
         <p className="text-sm text-slate-700">
           <strong className="font-black">{formatDistance(distanceKm)}</strong> away,{" "}
-          {compassName(bearing)} of you in a straight line. Driving distance will be longer.
+          {compassName(bearing)} of you.
+          {drivePending ? " Checking the road time…" : null}
+          {drive ? ` ${formatDriveTimeEstimate(drive.minutes, drive.source)}.` : null}
         </p>
       ) : (
         <div>
@@ -59,7 +93,7 @@ export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: 
                 ? "This browser cannot share a location. Open directions and set your own start point."
                 : status === "failed"
                   ? "Your location could not be read. Open directions and set your own start point."
-                  : "Optional. Used only in your browser to measure the distance, never stored or sent to us."}
+                  : "Optional. Used only in your browser to measure distance and driving time."}
           </p>
         </div>
       )}

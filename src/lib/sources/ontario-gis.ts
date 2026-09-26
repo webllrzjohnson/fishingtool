@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { withAccessPointLocation } from "@/lib/access-points";
+import { withAccessPointLocation, type NearbyAccessPoint } from "@/lib/access-points";
 import type { AccessPoint } from "@/lib/types";
 
 const ACCESS_LAYER =
@@ -123,7 +123,7 @@ export async function fetchNearbyAccessPoints(
   latitude: number,
   longitude: number,
   radiusKm = 20,
-): Promise<AccessPoint[]> {
+): Promise<NearbyAccessPoint[]> {
   const params = new URLSearchParams({
     f: "json",
     where: "1=1",

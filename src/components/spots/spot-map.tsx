@@ -1,6 +1,6 @@
 "use client";
 
-import Map, { Marker, NavigationControl, ScaleControl } from "react-map-gl/maplibre";
+import Map, { Marker, NavigationControl, Popup, ScaleControl } from "react-map-gl/maplibre";
 import { useMemo, useSyncExternalStore } from "react";
 import { buildViewerStyle, defaultOverlayState, OVERLAYS } from "@/lib/map/ontario-map-layers";
 import type { NearbyAccessPoint } from "@/lib/access-points";
@@ -22,6 +22,19 @@ function viewForMarkers(spot: Coordinates, accessPoints: NearbyAccessPoint[]) {
   return { latitude, longitude, zoom };
 }
 
+function accessFacts(point: NearbyAccessPoint) {
+  const facts = [
+    point.evidence?.parkingRecorded ? "Parking on record" : undefined,
+    point.evidence?.userFeeRecorded ? "Fee on record" : undefined,
+    point.evidence?.surface,
+    point.evidence?.ownership,
+  ].filter((fact): fact is string => Boolean(fact));
+  if (facts.length === 0) {
+    return "Official Ontario access. Parking and fees are not listed on this record.";
+  }
+  return facts.join(" · ");
+}
+
 export function SpotMap({
   spot,
   spotName,
@@ -39,6 +52,7 @@ export function SpotMap({
 }) {
   const isClient = useSyncExternalStore(subscribe, () => true, () => false);
   const view = useMemo(() => viewForMarkers(spot, accessPoints), [spot, accessPoints]);
+  const selected = accessPoints.find((point) => point.id === selectedAccessId);
   // Topographic tiles only. Extra overlays made the shoreline look like a second, offset map.
   const mapStyle = useMemo(() => {
     const overlays = defaultOverlayState();
@@ -98,6 +112,25 @@ export function SpotMap({
             </button>
           </Marker>
         ))}
+
+        {selected ? (
+          <Popup
+            longitude={selected.coordinates.longitude}
+            latitude={selected.coordinates.latitude}
+            anchor="bottom"
+            offset={16}
+            closeOnClick={false}
+            onClose={() => onSelectAccess?.("")}
+            className="spot-access-popup"
+          >
+            <div className="max-w-56 text-xs leading-5 text-slate-800">
+              <p className="font-black text-slate-950">
+                {selected.evidence?.siteName?.trim() || selected.type}
+              </p>
+              <p>{accessFacts(selected)}</p>
+            </div>
+          </Popup>
+        ) : null}
       </Map>
     </div>
   );

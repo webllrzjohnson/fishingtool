@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { WeatherForecast } from "@/lib/types";
+import type { WeatherForecast, WeatherHour } from "@/lib/types";
 
 const payloadSchema = z.object({
   latitude: z.number(),
@@ -83,4 +83,82 @@ export function shoreCondition(hour: WeatherForecast["hours"][number]) {
     return { level: "caution", label: "Use caution", reason: "Wind, gusts, or rain may make shore access uncomfortable or unsafe." };
   }
   return { level: "good", label: "Generally manageable", reason: "Forecast values are below the planner's caution thresholds." };
+}
+
+function minutesOfDay(iso: string) {
+  const clock = hourClock(iso);
+  if (!clock) return null;
+  return clock.hour * 60 + Number(clock.minutes);
+}
+
+function isDaylightHour(iso: string, bounds?: { sunrise?: string; sunset?: string }) {
+  const minute = minutesOfDay(iso);
+  if (minute === null) return false;
+  const date = iso.slice(0, 10);
+  const sunrise =
+    bounds?.sunrise?.startsWith(date) ? minutesOfDay(bounds.sunrise) : 6 * 60;
+  const sunset = bounds?.sunset?.startsWith(date) ? minutesOfDay(bounds.sunset) : 20 * 60;
+  if (sunrise === null || sunset === null) return false;
+  return minute >= sunrise && minute < sunset;
+}
+
+function hourClock(iso: string) {
+  const match = iso.match(/T(\d{2}):(\d{2})/);
+  if (!match) return null;
+  return { hour: Number(match[1]), minutes: match[2] };
+}
+
+function clockLabel(iso: string) {
+  const clock = hourClock(iso);
+  if (!clock) return iso;
+  const suffix = clock.hour >= 12 ? "PM" : "AM";
+  const hour12 = clock.hour % 12 || 12;
+  return `${hour12} ${suffix}`;
+}
+
+/**
+ * One line a shore angler can act on: the longest calm stretch, or when the day turns.
+ */
+export function bestShoreWindow(
+  hours: readonly WeatherHour[],
+  bounds?: { sunrise?: string; sunset?: string },
+): string | null {
+  const daytime = hours.filter((hour) => isDaylightHour(hour.time, bounds));
+  if (daytime.length === 0) return null;
+
+  let best: WeatherHour[] = [];
+  let current: WeatherHour[] = [];
+  for (const hour of daytime) {
+    if (shoreCondition(hour).level === "good") {
+      current.push(hour);
+      if (current.length > best.length) best = [...current];
+    } else {
+      current = [];
+    }
+  }
+
+  if (best.length >= 2) {
+    const start = clockLabel(best[0].time);
+    const end = clockLabel(best[best.length - 1].time);
+    return `Best window ${start}–${end}: lighter wind and a lower chance of rain.`;
+  }
+
+  const morning = daytime.filter((hour) => (hourClock(hour.time)?.hour ?? 0) < 12);
+  const afternoon = daytime.filter((hour) => (hourClock(hour.time)?.hour ?? 0) >= 12);
+  const morningRough =
+    morning.length > 0 &&
+    morning.filter(
+      (hour) => hour.precipitationProbability >= 50 || shoreCondition(hour).level !== "good",
+    ).length >= Math.ceil(morning.length / 2);
+  const firstClear = afternoon.find((hour) => shoreCondition(hour).level === "good");
+  if (morningRough && firstClear) {
+    return `Wind or rain is more likely this morning. Clearer after ${clockLabel(firstClear.time)}.`;
+  }
+
+  if (daytime.every((hour) => shoreCondition(hour).level === "avoid")) {
+    return "No comfortable shore window in this forecast.";
+  }
+
+  const calmest = [...daytime].sort((first, second) => first.windSpeed - second.windSpeed)[0];
+  return `Lightest wind around ${clockLabel(calmest.time)} (${Math.round(calmest.windSpeed)} km/h).`;
 }

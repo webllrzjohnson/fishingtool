@@ -317,6 +317,66 @@ export const commonSpecies: SpeciesProfile[] = [
     handling: "Watch the spines. Support the belly and keep fingers away from the dorsal and pectoral spines.",
     source,
   },
+  {
+    id: "rock-bass",
+    name: "Rock bass",
+    aliases: ["redeye", "goggle-eye"],
+    summary: "A chunky sunfish of rocky shorelines, docks, and weed edges. Small jigs and worms catch them from shore.",
+    habitat: ["Rocky points and riprap", "Docks and timber", "Weed edges near shore"],
+    seasonalPattern: {
+      spring: "Shallow rock as the water warms.",
+      summer: "Shade, docks, and the first drop.",
+      fall: "Still near shore until the water cools.",
+      winter: "Slow; not a main ice target.",
+    },
+    baits: [
+      { name: "Small jig", kind: "artificial", sizes: "1/16 oz", technique: "Hop along rock and dock pilings.", seasons: ["spring", "summer", "fall"] },
+      { name: "Worm", kind: "natural", sizes: "size 6–8 hook", rig: "Float or split shot", technique: "Where bait is legal, a worm under a float is enough.", seasons: ["spring", "summer"], liveBaitWarning: true },
+    ],
+    gear: { power: "Light spinning", line: "4–8 lb" },
+    handling: "The spiny dorsal fin pokes. Wet hands, support the body, and unhook with pliers.",
+    source,
+  },
+  {
+    id: "pumpkinseed",
+    name: "Pumpkinseed",
+    aliases: ["pumpkinseed sunfish"],
+    summary: "The common colourful sunfish of weedy bays and harbours. A light rod and a small bait or jig is the whole setup.",
+    habitat: ["Weedy bays and harbours", "Docks and lily edges", "Shallow warm water"],
+    seasonalPattern: {
+      spring: "Shallow weeds and spawning beds.",
+      summer: "Shade and weed edges through the day.",
+      fall: "Remaining weeds until the water cools.",
+      winter: "Occasional through the ice in shallow basins.",
+    },
+    baits: [
+      { name: "Tiny jig or grub", kind: "artificial", sizes: "1/32–1/16 oz", technique: "Short hops under a float.", seasons: ["spring", "summer", "fall"] },
+      { name: "Worm piece", kind: "natural", sizes: "size 8–10 hook", technique: "Where bait is legal.", seasons: ["spring", "summer"], liveBaitWarning: true },
+    ],
+    gear: { power: "Light spinning", line: "4–6 lb" },
+    handling: "Soft mouths and sharp spines. Keep them wet and unhook gently.",
+    source,
+  },
+  {
+    id: "bluegill",
+    name: "Bluegill",
+    aliases: ["bream"],
+    summary: "A schooling sunfish that holds in weeds, timber, and harbours. Fish them small: oversized bass lures are ignored.",
+    habitat: ["Weed beds and timber", "Harbours and quiet bays", "Shade under docks"],
+    seasonalPattern: {
+      spring: "Shallow beds when the water is warm.",
+      summer: "Weed edges and shade.",
+      fall: "Schools tighten around remaining cover.",
+      winter: "A light ice target on some southern lakes.",
+    },
+    baits: [
+      { name: "Small jig", kind: "artificial", sizes: "1/32–1/16 oz", technique: "Dead-stick or twitch beside weeds.", seasons: ["spring", "summer", "fall", "winter"] },
+      { name: "Worm piece", kind: "natural", sizes: "size 8–10 hook", rig: "Float", technique: "Where bait is legal.", seasons: ["spring", "summer"], liveBaitWarning: true },
+    ],
+    gear: { power: "Light spinning", line: "4–6 lb" },
+    handling: "Support the body. The dorsal spines are sharp and the mouth is small.",
+    source,
+  },
 ];
 
 const byId = new Map(commonSpecies.map((species) => [species.id, species]));

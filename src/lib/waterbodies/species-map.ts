@@ -20,12 +20,12 @@ const ARA_TO_CATALOG: Record<string, string> = {
   Carp: "carp",
   "Channel Catfish": "channel-catfish",
   "Brown Bullhead": "channel-catfish",
+  "Rock Bass": "rock-bass",
+  Pumpkinseed: "pumpkinseed",
+  Bluegill: "bluegill",
 };
 
 const GAME_SPECIES = new Set([
-  "Rock Bass",
-  "Pumpkinseed",
-  "Bluegill",
   "Brown Bullhead",
   "Sauger",
   "Burbot",

@@ -11,8 +11,12 @@ export const metadata: Metadata = {
   description: "Check Ontario fishing seasons, limits, and licence requirements by zone and date.",
 };
 
+function readParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function readFmz(value: string | string[] | undefined): FmzId | undefined {
-  const candidate = Array.isArray(value) ? value[0] : value;
+  const candidate = readParam(value);
   return candidate && candidate in fmzLabels ? (candidate as FmzId) : undefined;
 }
 
@@ -23,6 +27,8 @@ export default async function RulesPage({
 }) {
   const params = await searchParams;
   const initialFmz = readFmz(params.fmz);
+  const initialSpeciesId = readParam(params.species);
+  const initialDate = readParam(params.date);
 
   return (
     <PageShell>
@@ -34,7 +40,7 @@ export default async function RulesPage({
       />
 
       <div className="mt-7">
-        <RulesChecker initialFmz={initialFmz} />
+        <RulesChecker initialFmz={initialFmz} initialSpeciesId={initialSpeciesId} initialDate={initialDate} />
       </div>
 
       <div className="mt-10">

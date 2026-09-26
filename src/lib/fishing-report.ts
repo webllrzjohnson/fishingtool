@@ -2,16 +2,12 @@ import { fmzLabels, rulesForFmz } from "./fmz-rules";
 import { getLocationById } from "./fishing-locations";
 import { officialSources } from "./official-sources";
 import { tackleForTargets } from "./tackle-guide";
-import { userGear } from "./user-gear";
-import type { FishingReport } from "./types";
+import { defaultOutfit } from "@/lib/gear/default-outfit";
+import { evaluateOutfitSummary } from "@/lib/gear/evaluate";
+import { resolveOutfit } from "@/lib/gear/resolve";
+import type { GearOutfit } from "@/lib/gear/types";
+import type { FishingReport, LicenceType } from "./types";
 import { inferBaitManagementZone } from "./catalog";
-
-const globalLicenceReminders = [
-  `Your setup: ${userGear.rodReel}`,
-  `Licence: ${userGear.licence} — Sport licence gives full catch/possession where seasons allow.`,
-  "Carry Outdoors Card + official licence PDF (not a screenshot).",
-  "Legal to keep ≠ advisable to eat — check Ontario Guide to Eating Fish.",
-];
 
 const globalVerifyBeforeKeeping = [
   "Exact waterbody on Fish ON-Line",
@@ -27,9 +23,29 @@ const globalSafetyCautions = [
   "Community apps are bite reports only — not legal sources for limits or seasons.",
 ];
 
-export function buildFishingReport(locationId: string): FishingReport | null {
+function licenceLabel(type: LicenceType) {
+  return type === "conservation" ? "Conservation" : "Sport";
+}
+
+export function buildFishingReport(
+  locationId: string,
+  options?: {
+    outfit?: GearOutfit;
+    licenceType?: LicenceType;
+  },
+): FishingReport | null {
   const location = getLocationById(locationId);
   if (!location) return null;
+
+  const outfit = options?.outfit ?? defaultOutfit;
+  const licenceType = options?.licenceType ?? "sport";
+
+  const licenceReminders = [
+    `Your setup: ${outfit.name} (${evaluateOutfitSummary(outfit)})`,
+    `Licence: Ontario Outdoors Card + Ontario ${licenceLabel(licenceType)} Fishing Licence — ${licenceLabel(licenceType)} limits apply where seasons allow.`,
+    "Carry Outdoors Card + official licence PDF (not a screenshot).",
+    "Legal to keep ≠ advisable to eat — check Ontario Guide to Eating Fish.",
+  ];
 
   const baitAndParkRules = [
     location.baitRules,
@@ -44,12 +60,27 @@ export function buildFishingReport(locationId: string): FishingReport | null {
     fmzLabel: location.fmzNote ?? fmzLabels[location.fmz] ?? location.fmz.toUpperCase(),
     speciesForZone: rulesForFmz(location.fmz),
     tackleForTargets: tackleForTargets(location.beginnerTargets),
-    licenceReminders: globalLicenceReminders,
+    licenceReminders,
     baitAndParkRules,
     safetyCautions: [...location.cautions, ...globalSafetyCautions],
     verifyBeforeKeeping: globalVerifyBeforeKeeping,
     officialSources: [...officialSources],
   };
+}
+
+export function buildFishingReportFromTrip(
+  locationId: string,
+  trip: {
+    selectedGearId?: string;
+    licenceType?: LicenceType;
+    outfits?: readonly GearOutfit[];
+  },
+) {
+  const outfit = resolveOutfit(trip.outfits ?? [defaultOutfit], trip.selectedGearId);
+  return buildFishingReport(locationId, {
+    outfit,
+    licenceType: trip.licenceType,
+  });
 }
 
 export function formatReportText(report: FishingReport): string {

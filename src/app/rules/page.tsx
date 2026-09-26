@@ -1,30 +1,48 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { LicenceFmzGuide } from "@/components/rules/licence-fmz-guide";
 import { RulesChecker } from "@/components/rules/rules-checker";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { fmzLabels } from "@/lib/fmz-rules";
+import type { FmzId } from "@/lib/types";
 
 export const metadata: Metadata = {
-  title: "Ontario fishing rules check",
-  description: "Conservative date, FMZ, species, and licence-aware Ontario fishing rules guidance.",
+  title: "Ontario fishing rules",
+  description: "Check Ontario fishing seasons, limits, and licence requirements by zone and date.",
 };
 
-export default function RulesPage() {
+function readFmz(value: string | string[] | undefined): FmzId | undefined {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  return candidate && candidate in fmzLabels ? (candidate as FmzId) : undefined;
+}
+
+export default async function RulesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const initialFmz = readFmz(params.fmz);
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-      <p className="text-sm font-black uppercase tracking-[0.18em] text-red-800">Rules check</p>
-      <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">Check before you cast or keep</h1>
-      <p className="mt-3 max-w-3xl leading-7 text-slate-600">
-        Choose the exact FMZ, date, licence, and fish. The checker is deliberately conservative and always
-        sends you to Ontario&apos;s official source for final verification. For broader 2026 topics such as bait
-        receipts, ice huts, or combined limits, use the{" "}
-        <Link href="/regulations" className="font-bold text-teal-800 underline">2026 regulations library</Link>.
-      </p>
+    <PageShell>
+      <PageHeader
+        eyebrow="Rules"
+        tone="red"
+        title="Check before you cast or keep"
+        intro="Choose the zone, date, licence, and fish. This is conservative and always links to Ontario's official source."
+      />
+
       <div className="mt-7">
-        <LicenceFmzGuide />
+        <RulesChecker initialFmz={initialFmz} />
       </div>
-      <div className="mt-7">
-        <RulesChecker />
+
+      <div className="mt-10">
+        <h2 className="text-2xl font-black tracking-tight">Licences and zone summaries</h2>
+        <div className="mt-4">
+          <LicenceFmzGuide />
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

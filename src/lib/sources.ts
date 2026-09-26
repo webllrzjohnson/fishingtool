@@ -20,6 +20,22 @@ export const fishOnlineSource: SourceRecord = {
   kind: "official",
 };
 
+export const araSource: SourceRecord = {
+  name: "Ontario Aquatic Resource Area polygon segment",
+  url: "https://data.ontario.ca/dataset/aquatic-resource-area-polygon-segment",
+  lastVerified: VERIFIED_ON,
+  kind: "official",
+};
+
+export function fishOnlineWaterbodyUrl(waterbodyLid: string) {
+  const params = new URLSearchParams({
+    viewer: "FishONLine.FishONLine",
+    locale: "en-CA",
+    waterbody: waterbodyLid,
+  });
+  return `https://www.lioapplications.lrc.gov.on.ca/fishonline/Index.html?${params}`;
+}
+
 export const regulationsSource: SourceRecord = {
   name: "Ontario Fishing Regulations Summary",
   url: officialRegulationUrl,

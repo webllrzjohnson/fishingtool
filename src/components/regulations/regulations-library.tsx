@@ -10,6 +10,7 @@ import {
   type RegulationCategory,
 } from "@/lib/regulations/library";
 import { fishOnlineUrl, officialRegulationUrl } from "@/lib/sources";
+import { OfficialLink } from "@/components/ui/button";
 
 type Filter = "all" | RegulationCategory;
 
@@ -180,6 +181,3 @@ function Citation({ citation }: { citation: { page: number; label: string; url: 
   return <a href={citation.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-teal-800 underline">PDF p. {citation.page}: {citation.label}</a>;
 }
 
-function OfficialLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex rounded-xl border border-teal-300 bg-white px-3 py-2 text-sm font-black text-teal-950 underline">{children}</a>;
-}

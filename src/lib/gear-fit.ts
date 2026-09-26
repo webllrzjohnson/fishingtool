@@ -1,28 +1,41 @@
-import { defaultGear, gearFitForSpecies as fitSpecies } from "./gear";
-import { userGear } from "./user-gear";
-import type { GearFit, SpeciesProfile } from "./types";
+import { defaultOutfit } from "@/lib/gear/default-outfit";
+import { evaluateOutfit } from "@/lib/gear/evaluate";
+import type { FishingTechnique, GearOutfit, OutfitFitView as GearFitViewType } from "@/lib/gear/types";
+import type { SpeciesProfile } from "./types";
 
-export type GearFitView = GearFit & {
-  label: string;
-  detail: string;
-  gear: string;
-};
+export type { OutfitFitView as GearFitView } from "@/lib/gear/types";
 
-export function gearFitForSpecies(species: SpeciesProfile | undefined): GearFitView {
+export function gearFitView(
+  species: SpeciesProfile | undefined,
+  outfit: GearOutfit = defaultOutfit,
+  technique?: FishingTechnique,
+): GearFitViewType {
   if (!species) {
+    const lineRange =
+      outfit.rod.lineRatingMinLb && outfit.rod.lineRatingMaxLb
+        ? `${outfit.rod.lineRatingMinLb}–${outfit.rod.lineRatingMaxLb} lb`
+        : outfit.line.testLb;
     return {
-      level: "workable",
-      message: "Match lure weight to the 6–15 lb rating and confirm leaders if the species has teeth or size.",
+      status: "works-with-compromises",
       label: "Check the setup",
-      detail: "Match lure weight to the 6–15 lb rating and confirm leaders if the species has teeth or size.",
-      gear: userGear.rodReel,
+      reasons: [`Match lure weight to the ${lineRange} rating and confirm leaders if the species has teeth or size.`],
+      confidence: "medium",
+      level: "workable",
+      detail: `Match lure weight to the ${lineRange} rating and confirm leaders if the species has teeth or size.`,
+      gear: outfit.name,
+      outfitId: outfit.id,
     };
   }
-  const fit = fitSpecies(species, defaultGear);
+  const fit = evaluateOutfit(outfit, species, technique);
   return {
     ...fit,
-    label: fit.level === "good" ? "Good fit" : fit.level === "unsuitable" ? "Unsuitable" : "Workable",
-    detail: fit.message,
-    gear: defaultGear.name,
+    detail: fit.reasons.join(" "),
+    gear: outfit.name,
+    outfitId: outfit.id,
   };
+}
+
+/** Server-safe default fit using the seeded GX2 outfit. */
+export function gearFitForSpecies(species: SpeciesProfile | undefined, technique?: FishingTechnique): GearFitViewType {
+  return gearFitView(species, defaultOutfit, technique);
 }

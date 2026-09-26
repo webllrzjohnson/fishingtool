@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getSpeciesById } from "@/data/curated/species";
+import { getTechniqueProfile } from "@/lib/gear/technique-profiles";
+import { resolveOutfit } from "@/lib/gear/resolve";
 import { deleteTrip, readTrips, writeTrips } from "@/lib/trips/storage";
 import { getLocationById } from "@/lib/fishing-locations";
 import type { TripPlan } from "@/lib/types";
+import { useGearOutfits } from "@/hooks/use-gear-outfits";
 
 export function SavedTrips() {
   const [trips, setTrips] = useState<TripPlan[]>([]);
+  const { outfits } = useGearOutfits();
 
   useEffect(() => {
     const refresh = () => setTrips(readTrips());
@@ -30,11 +35,8 @@ export function SavedTrips() {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
         <h2 className="text-xl font-black">No saved trips yet</h2>
-        <p className="mt-2 text-slate-600">Open a location, choose a date, and save it here with its checklist.</p>
-        <Link href="/trips/new" className="mt-5 inline-block rounded-xl border border-teal-800 px-4 py-3 font-bold text-teal-900">
-          Start a new trip
-        </Link>
-        <Link href="/explore" className="mt-5 inline-block rounded-xl bg-teal-800 px-4 py-3 font-bold text-white">
+        <p className="mt-2 text-slate-600">Find a spot, choose a date, and save it here with its checklist.</p>
+        <Link href="/" className="mt-5 inline-block rounded-xl bg-teal-800 px-4 py-3 font-bold text-white">
           Find a fishing spot
         </Link>
       </div>
@@ -45,21 +47,35 @@ export function SavedTrips() {
     <div className="space-y-5">
       {trips.map((trip) => {
         const location = getLocationById(trip.locationId);
+        const outfit = resolveOutfit(outfits, trip.selectedGearId);
+        const species = trip.targetSpeciesIds.map((id) => getSpeciesById(id)).find(Boolean);
+        const technique = trip.targetTechnique ? getTechniqueProfile(trip.targetTechnique) : undefined;
         const checked = Object.values(trip.checklist).filter(Boolean).length;
         const total = Object.keys(trip.checklist).length;
+        const spot = trip.spot ?? (location?.coordinates
+          ? { name: location.name, ...location.coordinates }
+          : undefined);
+        const openHref = spot
+          ? `/?name=${encodeURIComponent(spot.name)}&lat=${spot.latitude}&lon=${spot.longitude}`
+          : undefined;
         return (
           <article key={trip.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-teal-800">{trip.date}</p>
-                <h2 className="mt-1 text-2xl font-black">{location?.name ?? "Unknown location"}</h2>
+                <h2 className="mt-1 text-2xl font-black">
+                  {spot?.name ?? location?.name ?? "Unknown location"}
+                </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {trip.licenceType} licence · {trip.targetSpeciesIds.join(", ") || "No target selected"}
+                  {trip.licenceType} licence · {(species?.name ?? trip.targetSpeciesIds.join(", ")) || "No target selected"}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {technique ? `${technique.label} · ` : ""}{outfit.name}
                 </p>
               </div>
               <div className="flex gap-2">
-                {location ? (
-                  <Link href={`/locations/${location.slug ?? location.id}?date=${trip.date}`} className="rounded-lg bg-teal-50 px-3 py-2 text-sm font-bold text-teal-900">
+                {openHref ? (
+                  <Link href={openHref} className="inline-flex min-h-11 items-center rounded-lg bg-teal-50 px-3 text-sm font-bold text-teal-900">
                     Open
                   </Link>
                 ) : null}
@@ -69,7 +85,7 @@ export function SavedTrips() {
                     deleteTrip(trip.id);
                     setTrips(readTrips());
                   }}
-                  className="rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-800"
+                  className="inline-flex min-h-11 items-center rounded-lg bg-red-50 px-3 text-sm font-bold text-red-800"
                 >
                   Delete
                 </button>

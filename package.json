@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:restart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/restart-dev.ps1",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --tsconfig tsconfig.json --test tests/**/*.test.ts",
     "data:validate": "tsx --tsconfig tsconfig.json scripts/import-ontario-data.ts",
+    "data:snapshot:waterbodies": "tsx --tsconfig tsconfig.json scripts/snapshot-waterbodies.ts",
     "data:validate:regulations": "tsx --tsconfig tsconfig.json scripts/validate-regulations-library.ts",
     "data:images": "tsx --tsconfig tsconfig.json scripts/download-species-images.ts"
   },

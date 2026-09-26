@@ -180,9 +180,12 @@ export type SavedGear = {
 export type TripPlan = {
   id: string;
   locationId: string;
+  /** Present when the trip was saved from a searched place rather than a curated location. */
+  spot?: { name: string; latitude: number; longitude: number };
   date: string;
   licenceType: LicenceType;
   targetSpeciesIds: string[];
+  targetTechnique?: string;
   notes: string;
   checklist: Record<string, boolean>;
   createdAt: string;
@@ -240,4 +243,46 @@ export type FishingReport = {
   safetyCautions: string[];
   verifyBeforeKeeping: string[];
   officialSources: { label: string; url: string }[];
+};
+
+export type AraSpeciesClass = "game-with-profile" | "game-no-profile" | "non-game";
+
+export type OfficialWaterbodySpecies = {
+  name: string;
+  classification: AraSpeciesClass;
+  catalogSpeciesId?: string;
+};
+
+export type OfficialWaterbody = {
+  waterbodyLid: string;
+  araIdent?: string;
+  araSummaryId?: number;
+  ogfId?: number;
+  officialName: string;
+  corporateName?: string;
+  aliases: string[];
+  waterbodyType: string;
+  fmz: FmzId;
+  thermalRegime?: string;
+  thermalRegimeReason?: string;
+  species: OfficialWaterbodySpecies[];
+  surfaceAreaHa?: number;
+  maxDepthM?: number;
+  meanDepthM?: number;
+  secchiDepthM?: number;
+  morphoedaphicIndex?: number;
+  coordinates?: Coordinates;
+  spatialVerification?: string;
+  effectiveDate?: string;
+  source: SourceRecord;
+  matchConfidence?: "exact" | "nearby";
+  matchDistanceM?: number;
+};
+
+export type WaterbodySnapshotEntry = {
+  locationId: string;
+  fetchedAt: string;
+  waterbody: OfficialWaterbody;
+  curatedFmzMismatch: boolean;
+  speciesNotInCurated: string[];
 };

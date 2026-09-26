@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { SpeciesIllustration } from "@/components/species/species-illustration";
 import { commonSpecies, getSpeciesById } from "@/data/curated/species";
 import { fishingLocations } from "@/lib/fishing-locations";
-import { gearFitForSpecies } from "@/lib/gear-fit";
+import { SpeciesGearFit } from "@/components/species/species-gear-fit";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -20,7 +20,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SpeciesDetailPage({ params }: Props) {
   const species = getSpeciesById((await params).slug);
   if (!species) notFound();
-  const fit = gearFitForSpecies(species);
   const matchingLocations = fishingLocations.filter((location) =>
     location.expectedSpecies.some(
       (candidate) =>
@@ -57,21 +56,7 @@ export default async function SpeciesDetailPage({ params }: Props) {
           </ul>
         </GuideCard>
         <GuideCard title="Gear fit">
-          <p className={`rounded-xl p-3 text-sm font-bold ${
-            fit.level === "good"
-              ? "bg-emerald-50 text-emerald-900"
-              : fit.level === "unsuitable"
-                ? "bg-red-50 text-red-900"
-                : "bg-amber-50 text-amber-900"
-          }`}>
-            {fit.label}: {fit.detail}
-          </p>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div><dt className="font-black">Your combo</dt><dd className="text-slate-600">{fit.gear}</dd></div>
-            <div><dt className="font-black">Typical power</dt><dd className="text-slate-600">{species.gear.power}</dd></div>
-            <div><dt className="font-black">Line</dt><dd className="text-slate-600">{species.gear.line}</dd></div>
-            {species.gear.leader ? <div><dt className="font-black">Leader</dt><dd className="text-slate-600">{species.gear.leader}</dd></div> : null}
-          </dl>
+          <SpeciesGearFit species={species} />
           <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700">{species.handling}</p>
         </GuideCard>
       </div>
@@ -117,16 +102,27 @@ export default async function SpeciesDetailPage({ params }: Props) {
       </section>
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <h2 className="text-2xl font-black">Popular places in this guide</h2>
+        <h2 className="text-2xl font-black">Places to try for this fish</h2>
         {matchingLocations.length ? (
           <div className="mt-4 flex flex-wrap gap-2">
-            {matchingLocations.map((location) => (
-              <Link key={location.id} href={`/locations/${location.slug ?? location.id}`} className="rounded-xl bg-teal-50 px-3 py-2 text-sm font-bold text-teal-900">
-                {location.name}
-              </Link>
-            ))}
+            {matchingLocations
+              .filter((location) => location.coordinates)
+              .map((location) => (
+                <Link
+                  key={location.id}
+                  href={`/?name=${encodeURIComponent(location.name)}&lat=${location.coordinates!.latitude}&lon=${location.coordinates!.longitude}`}
+                  className="rounded-xl bg-teal-50 px-3 py-2 text-sm font-bold text-teal-900"
+                >
+                  {location.name}
+                </Link>
+              ))}
           </div>
-        ) : <p className="mt-3 text-sm text-slate-500">Use Explore Ontario to search official and curated waters.</p>}
+        ) : (
+          <p className="mt-3 text-sm text-slate-500">
+            <Link href="/" className="font-bold text-teal-800 underline">Search any Ontario place</Link>
+            {" "}to see whether this fish is on record there.
+          </p>
+        )}
       </section>
 
       <p className="mt-6 text-xs text-slate-500">

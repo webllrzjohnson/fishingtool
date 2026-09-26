@@ -5,8 +5,8 @@ import { officialFmzUrl, rulesForFmz } from "@/lib/fmz-rules";
 import { evaluateRule } from "@/lib/regulations/evaluate";
 import type { FmzId, LicenceType } from "@/lib/types";
 
-export function RulesChecker() {
-  const [fmz, setFmz] = useState<FmzId>("fmz-16");
+export function RulesChecker({ initialFmz = "fmz-16" }: { initialFmz?: FmzId }) {
+  const [fmz, setFmz] = useState<FmzId>(initialFmz);
   const [date, setDate] = useState("");
   const [licence, setLicence] = useState<LicenceType>("sport");
   const [speciesIndex, setSpeciesIndex] = useState(0);

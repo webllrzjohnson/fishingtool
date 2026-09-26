@@ -1,45 +1,31 @@
-import type { BaitOption, FishingLocation, GearFit, SavedGear, SpeciesProfile } from "./types";
+import type { BaitOption, FishingLocation, GearFit, SpeciesProfile } from "./types";
+import { defaultOutfit } from "@/lib/gear/default-outfit";
+import { evaluateOutfit, toLegacyGearFit } from "@/lib/gear/evaluate";
+import { outfitToSavedGear } from "@/lib/gear/resolve";
+import type { FishingTechnique, GearOutfit, OutfitFitResult } from "@/lib/gear/types";
 import { seasonForDate } from "./regulations/evaluate";
-import { userGear } from "./user-gear";
 
-export const defaultGear: SavedGear = {
-  id: "ugly-stik-gx2",
-  name: userGear.rodReel,
-  power: "medium",
-  line: "6–15 lb",
-  notes: "A versatile shore spinning combo. Add a leader for pike. It is not muskie gear.",
-};
+export const defaultGear = outfitToSavedGear(defaultOutfit);
 
-export function gearFitForSpecies(species: SpeciesProfile, gear: SavedGear = defaultGear): GearFit {
-  const id = species.id;
-  if (id === "muskellunge") {
-    return {
-      level: "unsuitable",
-      message: `${gear.name} is too light for muskie. Use dedicated heavy baitcasting gear or book a guided trip.`,
-    };
-  }
-  if (id === "lake-trout" || id === "pacific-salmon") {
-    return {
-      level: "workable",
-      message: `Shore and light trolling can work on ${gear.name}. Deep summer trolling needs heavier or specialized gear.`,
-    };
-  }
-  if (id === "northern-pike") {
-    return {
-      level: "workable",
-      message: `${gear.name} can handle typical shore pike if you add a wire or heavy fluorocarbon leader.`,
-    };
-  }
-  if (id === "brook-trout" || id === "yellow-perch" || id === "crappie") {
-    return {
-      level: gear.power === "heavy" ? "workable" : "good",
-      message: `${gear.name} is a good match if you downsize hooks, jigs, and line for these fish.`,
-    };
-  }
+export function gearFitForSpecies(
+  species: SpeciesProfile,
+  outfit: GearOutfit = defaultOutfit,
+  technique?: FishingTechnique,
+): GearFit {
+  const result = evaluateOutfit(outfit, species, technique);
+  const legacy = toLegacyGearFit(result, outfit.name);
   return {
-    level: "good",
-    message: `${gear.name} is a reasonable match for ${species.name} from shore with the listed line and leader.`,
+    level: legacy.level,
+    message: legacy.message,
   };
+}
+
+export function evaluateGearFit(
+  species: SpeciesProfile,
+  outfit: GearOutfit = defaultOutfit,
+  technique?: FishingTechnique,
+): OutfitFitResult {
+  return evaluateOutfit(outfit, species, technique);
 }
 
 export function liveBaitAllowed(location: FishingLocation) {
@@ -84,14 +70,17 @@ export function baitsForTrip(
     });
 }
 
-export function tackleChecklist(species: SpeciesProfile, fit: GearFit) {
+export function tackleChecklist(species: SpeciesProfile, fit: GearFit | OutfitFitResult, outfit?: GearOutfit) {
+  const level = fit.level;
   const items = [
     `${species.name} hooks or jigs in the listed sizes`,
     "Needle-nose pliers and line cutters",
     "PFD for exposed shore, ice, boat, or kayak",
   ];
   if (species.gear.leader) items.push(species.gear.leader);
-  if (fit.level !== "good") items.push("Backup plan or heavier/lighter outfit if the fish is a poor match");
+  if (outfit?.leader) items.push(`Rig leader: ${outfit.leader.testLb} ${outfit.leader.material}`);
+  if (level !== "good") items.push("Backup plan or alternate outfit if the fish is a poor match");
   if (species.baits.some((bait) => bait.kind === "artificial")) items.push("A small selection of the listed artificial lures");
+  if (outfit?.safetyGear?.length) items.push(...outfit.safetyGear);
   return items;
 }

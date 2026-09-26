@@ -92,6 +92,33 @@ export async function fetchFmzForPoint(latitude: number, longitude: number): Pro
   };
 }
 
+function escapeSqlLiteral(value: string) {
+  return value.replace(/'/g, "''");
+}
+
+/**
+ * Finds official access records by the name printed on the site, so a marina or
+ * harbour can be opened even when it is not an Aquatic Resource Area waterbody.
+ */
+export async function searchAccessPointsByName(name: string, limit = 6): Promise<AccessPoint[]> {
+  const term = name.trim().replace(/[%_]/g, "");
+  if (term.length < 3) return [];
+  const params = new URLSearchParams({
+    f: "json",
+    where: `UPPER(SITE_NAME) LIKE '%${escapeSqlLiteral(term.toUpperCase())}%'`,
+    outFields: "*",
+    returnGeometry: "true",
+    outSR: "4326",
+    resultRecordCount: String(limit),
+  });
+  const response = await fetch(`${ACCESS_LAYER}?${params}`, {
+    signal: AbortSignal.timeout(8_000),
+    next: { revalidate: 86_400 },
+  });
+  if (!response.ok) throw new Error(`Ontario GIS returned ${response.status}`);
+  return parseAccessFeatures(await response.json());
+}
+
 export async function fetchNearbyAccessPoints(
   latitude: number,
   longitude: number,
@@ -162,6 +189,69 @@ export function parseAccessFeatures(raw: unknown): AccessPoint[] {
 
 const STOCKING_LAYER =
   "https://services1.arcgis.com/TJH5KDher0W13Kgo/arcgis/rest/services/FishStockingDataForRecreationalPurposes/FeatureServer/0/query";
+
+export type StockingRecord = {
+  species: string;
+  year?: number;
+  numberStocked?: number;
+  developmentalStage?: string;
+  waterbodyName?: string;
+  mnrDistrict?: string;
+};
+
+const stockingFeatureSchema = z.object({
+  attributes: z.object({
+    Species: z.string().nullish(),
+    Stocking_Year: z.number().nullish(),
+    Number_of_Fish_Stocked: z.number().nullish(),
+    Developmental_Stage: z.string().nullish(),
+    Official_Waterbody_Name: z.string().nullish(),
+    MNRF_District: z.string().nullish(),
+  }),
+});
+
+export function parseStockingRecords(raw: unknown): StockingRecord[] {
+  const data = z
+    .object({ features: z.array(stockingFeatureSchema).default([]) })
+    .parse(raw);
+
+  return data.features
+    .flatMap(({ attributes }) => {
+      const species = optionalText(attributes.Species);
+      if (!species) return [];
+      return [
+        {
+          species,
+          year: attributes.Stocking_Year ?? undefined,
+          numberStocked: attributes.Number_of_Fish_Stocked ?? undefined,
+          developmentalStage: optionalText(attributes.Developmental_Stage),
+          waterbodyName: optionalText(attributes.Official_Waterbody_Name),
+          mnrDistrict: optionalText(attributes.MNRF_District),
+        },
+      ];
+    })
+    .sort((left, right) => (right.year ?? 0) - (left.year ?? 0));
+}
+
+/**
+ * Stocking for one waterbody. The stocking dataset carries the same location identifier
+ * as the Aquatic Resource Area records, so this is an exact match rather than a radius.
+ */
+export async function fetchStockingByWaterbody(lid: string): Promise<StockingRecord[]> {
+  const params = new URLSearchParams({
+    f: "json",
+    where: `Waterbody_Location_Identifier='${lid.replace(/'/g, "''")}'`,
+    outFields: "*",
+    returnGeometry: "false",
+    resultRecordCount: "200",
+  });
+  const response = await fetch(`${STOCKING_LAYER}?${params}`, {
+    signal: AbortSignal.timeout(8_000),
+    next: { revalidate: 86_400 },
+  });
+  if (!response.ok) throw new Error(`Ontario GIS returned ${response.status}`);
+  return parseStockingRecords(await response.json());
+}
 
 export async function fetchNearbyStocking(latitude: number, longitude: number) {
   const params = new URLSearchParams({

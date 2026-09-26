@@ -101,8 +101,11 @@ export function DiscoveryMap({ locations, selectedId, onSelect, className = "h-[
               <p className="text-xs text-slate-600">
                 {popup.region} · {popup.fmz.toUpperCase()}
               </p>
-              <a className="mt-2 inline-block text-xs font-bold text-teal-800 underline" href={`/locations/${popup.slug ?? popup.id}`}>
-                View location
+              <a
+                className="mt-2 inline-block text-xs font-bold text-teal-800 underline"
+                href={`/?name=${encodeURIComponent(popup.name)}&lat=${popup.coordinates.latitude}&lon=${popup.coordinates.longitude}`}
+              >
+                Open this spot
               </a>
             </div>
           </Popup>

@@ -178,26 +178,35 @@ export function TripPlanner({ locations }: { locations: FishingLocation[] }) {
             <p className="text-xs font-black uppercase tracking-[0.16em] text-teal-300">Suggested shore trips</p>
             <h2 className="mt-1 text-xl font-black">{target === "any" ? "Popular starting points" : `Places for ${target}`}</h2>
           </div>
-          <Link href="/explore" className="text-sm font-bold text-teal-300 underline">
-            Explore all
+          <Link href="/" className="text-sm font-bold text-teal-300 underline">
+            Search any place
           </Link>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {suggestions.map(({ location, distance }) => (
-            <Link
-              key={location.id}
-              href={`/locations/${location.slug ?? location.id}?date=${date}&licence=${licence}&target=${encodeURIComponent(target)}`}
-              className="rounded-2xl border border-slate-700 bg-slate-900 p-4 hover:border-teal-500"
-            >
-              <p className="font-bold">{location.name}</p>
-              <p className="mt-1 text-xs text-slate-400">
-                {location.region ?? "Ontario"} · {location.fmz.toUpperCase()}
-                {distance !== null ? ` · about ${distance} km away` : ""}
-              </p>
-              <p className="mt-2 text-sm text-slate-300">{location.beginnerTargets.slice(0, 3).join(" · ")}</p>
-            </Link>
-          ))}
-        </div>
+        {suggestions.length ? (
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {suggestions
+              .filter(({ location }) => location.coordinates)
+              .map(({ location, distance }) => (
+              <Link
+                key={location.id}
+                href={`/?name=${encodeURIComponent(location.name)}&lat=${location.coordinates?.latitude}&lon=${location.coordinates?.longitude}`}
+                className="rounded-2xl border border-slate-700 bg-slate-900 p-4 hover:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              >
+                <p className="font-bold">{location.name}</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {location.region ?? "Ontario"} · {location.fmz.toUpperCase()}
+                  {distance !== null ? ` · about ${distance} km away` : ""}
+                </p>
+                <p className="mt-2 text-sm text-slate-300">{location.beginnerTargets.slice(0, 3).join(" · ")}</p>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-600 p-6 text-sm text-slate-300">
+            No locations match those filters. Try a wider radius, turn off beginner-only mode, or{" "}
+            <Link href="/" className="font-bold text-teal-300 underline">search a place by name</Link>.
+          </p>
+        )}
       </div>
     </section>
   );

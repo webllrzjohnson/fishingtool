@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { shoreCondition, windDirectionLabel } from "@/lib/sources/weather";
 import type { Coordinates, WeatherForecast } from "@/lib/types";
+import { AsyncState } from "@/components/ui/async-state";
+import { Callout } from "@/components/ui/card";
 
 export function WeatherPanel({ coordinates, tripDate }: { coordinates?: Coordinates; tripDate?: string }) {
   const [forecast, setForecast] = useState<WeatherForecast>();
   const [error, setError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!coordinates) return;
@@ -17,13 +20,16 @@ export function WeatherPanel({ coordinates, tripDate }: { coordinates?: Coordina
         if (!response.ok) throw new Error(body.error ?? "Weather unavailable");
         return body as WeatherForecast;
       })
-      .then(setForecast)
+      .then((data) => {
+        setForecast(data);
+        setError("");
+      })
       .catch((reason) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
         setError(reason instanceof Error ? reason.message : "Weather unavailable");
       });
     return () => controller.abort();
-  }, [coordinates]);
+  }, [coordinates, retryCount]);
 
   const hours = useMemo(() => {
     if (!forecast) return [];
@@ -31,32 +37,48 @@ export function WeatherPanel({ coordinates, tripDate }: { coordinates?: Coordina
     return forecast.hours.filter((hour) => hour.time.startsWith(selectedDate)).filter((_, index) => index % 3 === 0);
   }, [forecast, tripDate]);
 
-  if (!coordinates) return <p className="text-sm text-slate-500">Coordinates are not yet available for this location.</p>;
-  if (error) return <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{error}</p>;
-  if (!forecast) return <p className="animate-pulse text-sm text-slate-500">Loading wind and weather…</p>;
+  if (!coordinates) {
+    return <AsyncState unavailable unavailableMessage="Coordinates are not yet available for this location." />;
+  }
+
+  if (!forecast && !error) {
+    return <AsyncState loading loadingMessage="Loading wind and weather…" />;
+  }
+
+  if (error && !forecast) {
+    return (
+      <AsyncState
+        error={error}
+        onRetry={() => {
+          setError("");
+          setForecast(undefined);
+          setRetryCount((count) => count + 1);
+        }}
+      />
+    );
+  }
+
+  if (!forecast) return null;
+
   if (!hours.length) {
     return (
-      <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
-        This date is outside the 7-day forecast. Recheck closer to your trip.
-      </p>
+      <AsyncState
+        empty
+        emptyMessage="This date is outside the 7-day forecast. Recheck closer to your trip."
+      />
     );
   }
 
   const representative = hours[Math.min(2, hours.length - 1)];
   const condition = shoreCondition(representative);
-  const conditionClass =
-    condition.level === "good"
-      ? "bg-emerald-50 text-emerald-900"
-      : condition.level === "caution"
-        ? "bg-amber-50 text-amber-900"
-        : "bg-red-50 text-red-900";
+  const conditionTone = condition.level === "good" ? "emerald" : condition.level === "caution" ? "amber" : "red";
 
   return (
     <div>
-      <div className={`rounded-xl p-3 ${conditionClass}`}>
-        <p className="font-black">{condition.label}</p>
-        <p className="mt-1 text-sm">{condition.reason}</p>
-      </div>
+      <Callout tone={conditionTone}>
+        <span className="font-black">{condition.label}</span>
+        <span className="mt-1 block text-sm font-normal">{condition.reason}</span>
+      </Callout>
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {hours.slice(0, 8).map((hour) => (
           <div key={hour.time} className="rounded-xl border border-slate-200 bg-white p-3">

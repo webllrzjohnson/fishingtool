@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { FMZ_NUMBERS, licenceFmzGuideLinks } from "@/lib/regulations/licence-fmz-guide";
+import { OfficialLink } from "@/components/ui/button";
+import { ZONE_EXCEPTIONS_NOTE } from "@/lib/copy";
 
 export function LicenceFmzGuide() {
   return (
@@ -35,9 +36,8 @@ export function LicenceFmzGuide() {
       <div className="mt-5 rounded-xl border border-teal-200 bg-white p-4">
         <h3 className="font-black text-slate-950">How FMZs work</h3>
         <p className="mt-2 text-sm leading-6 text-slate-700">
-          Start by finding your exact water on Fish ON-Line, then open that zone&apos;s current regulations. Zone-wide
-          rules can be changed by waterbody exceptions, sanctuaries, boundaries, variation orders, or local access
-          rules. A lake and a nearby tributary can be in different zones.
+          Start by finding your exact water on Fish ON-Line, then open that zone&apos;s current regulations.
+          {" "}{ZONE_EXCEPTIONS_NOTE} A lake and a nearby tributary can be in different zones.
         </p>
         <div className="mt-3 flex flex-wrap gap-2" aria-label="Ontario Fisheries Management Zones 1 through 20">
           {FMZ_NUMBERS.map((zone) => (
@@ -53,26 +53,7 @@ export function LicenceFmzGuide() {
         <OfficialLink href={licenceFmzGuideLinks.limitsExplainer}>How to read limits</OfficialLink>
         <OfficialLink href={licenceFmzGuideLinks.regulationsSummary}>Current regulations summary</OfficialLink>
         <OfficialLink href={licenceFmzGuideLinks.fishOnline}>Find a waterbody in Fish ON-Line</OfficialLink>
-        <Link
-          href="/regulations"
-          className="rounded-xl border border-teal-300 bg-white px-4 py-3 text-sm font-black text-teal-950 underline"
-        >
-          Search the 2026 regulations library
-        </Link>
       </div>
     </section>
-  );
-}
-
-function OfficialLink({ children, href }: { children: React.ReactNode; href: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="rounded-xl border border-teal-300 bg-white px-4 py-3 text-sm font-black text-teal-950 underline"
-    >
-      {children}
-    </a>
   );
 }

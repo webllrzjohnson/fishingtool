@@ -5,6 +5,8 @@ import { test } from "node:test";
 import { commonSpecies } from "@/data/curated/species";
 import { tacklePhoto, tacklePhotos } from "@/data/curated/tackle-photos";
 import { generatedTackleImage, generatedTackleImages } from "@/data/curated/tackle-generated";
+import { tackleTargets } from "@/data/curated/tackle-targets";
+import { filterTackleCatalog, tackleCatalog, tackleCategories } from "@/lib/tackle-catalog";
 import { baitFamilyByName, baitRuleWarning, familyForBait, guideForFamily, reelSetupsForSpecies, reelTypes, tackleFamilies, tackleImage } from "@/data/curated/tackle-reference";
 
 const asset = (src: string) => join(process.cwd(), "public", src.replace(/^\//, ""));
@@ -88,7 +90,7 @@ test("photographs are local, attributed and licensed with explicit fallback", ()
   assert.match(picture, /photo\.licenseUrl/);
   assert.match(picture, /Original schematic · not to scale/);
   assert.match(picture, /photo\.creator/);
-  for (const file of ["src/app/tackle/page.tsx", "src/app/tackle/reels/page.tsx", "src/app/species/[slug]/page.tsx"]) {
+  for (const file of ["src/components/tackle/tackle-catalog.tsx", "src/app/tackle/reels/page.tsx", "src/app/species/[slug]/page.tsx"]) {
     assert.match(readFileSync(join(process.cwd(), file), "utf8"), /<TacklePicture/);
   }
 });
@@ -230,6 +232,75 @@ test("family guide uses curated sizes, techniques and target links, with natural
     if (guide.examples.some(({ bait }) => bait.kind === "natural")) assert.equal(guide.natural, true, family.id);
   }
   assert.ok(guideForFamily("spoon").examples.some((item) => item.speciesId === "lake-trout"));
-  assert.ok(guideForFamily("maggot").examples.some((item) => item.speciesId === "lake-whitefish"));
+  assert.deepEqual(guideForFamily("maggot").examples.map((item) => item.speciesId), ["yellow-perch", "crappie", "bluegill"]);
   assert.deepEqual(guideForFamily("dry-fly").sizes, []);
+});
+
+test("catalog covers every family once and filters by category, target, size and technique", () => {
+  assert.deepEqual(tackleCatalog.map((item) => item.id), tackleFamilies.map((item) => item.id));
+  const categoryIds = tackleCategories.filter((item) => item.id !== "all").map((item) => item.id);
+  assert.deepEqual([...new Set(tackleCatalog.map((item) => item.category))].sort(), categoryIds.sort());
+  assert.equal(categoryIds.reduce((count, id) => count + filterTackleCatalog(tackleCatalog, "", id).length, 0), tackleFamilies.length);
+  assert.deepEqual(filterTackleCatalog(tackleCatalog, "  PADDLE tail ", "all").map((item) => item.id), ["swimbait", "soft-rubber"]);
+  assert.ok(filterTackleCatalog(tackleCatalog, "walleye", "all").some((item) => item.id === "swimbait"));
+  assert.ok(filterTackleCatalog(tackleCatalog, "muskellunge", "all").some((item) => item.id === "topwater"));
+  assert.ok(filterTackleCatalog(tackleCatalog, "carp", "all").some((item) => item.id === "bottom-rig"));
+  assert.deepEqual(filterTackleCatalog(tackleCatalog, "boilie", "flies"), []);
+  assert.deepEqual(filterTackleCatalog(tackleCatalog, "nonsense", "all"), []);
+  for (const item of tackleCatalog) {
+    assert.ok(item.summary.length > 15, item.id);
+    assert.equal(item.natural, guideForFamily(item.id).natural, item.id);
+    assert.deepEqual(item.sizes, guideForFamily(item.id).sizes, item.id);
+  }
+});
+
+test("researched possible targets cover all families with evidence and scale cautions", () => {
+  assert.deepEqual(Object.keys(tackleTargets).sort(), tackleFamilies.map((family) => family.id).sort());
+  const known = new Set(commonSpecies.map((species) => species.id));
+  for (const item of tackleCatalog) {
+    const research = tackleTargets[item.id];
+    assert.ok(research.ids.length > 0, item.id);
+    assert.equal(new Set(research.ids).size, research.ids.length, `${item.id}: duplicate target`);
+    for (const id of research.ids) assert.ok(known.has(id), `${item.id}: unknown target ${id}`);
+    for (const url of research.sources) assert.match(url, /^https:\/\/[^\s/]+\//, `${item.id}: evidence URL`);
+    assert.ok(research.note.length > 20, item.id);
+    assert.deepEqual(item.targets.map((target) => target.id), [...research.ids], item.id);
+  }
+  assert.deepEqual(tackleTargets["bottom-rig"].ids, ["carp", "channel-catfish", "yellow-perch"]);
+  assert.ok(tackleTargets["jigging-spoon"].ids.includes("walleye"));
+  assert.ok(tackleTargets["inline-spinner"].ids.includes("northern-pike"));
+  assert.ok(tackleTargets["topwater"].ids.includes("muskellunge"));
+  assert.deepEqual(tackleTargets.maggot.ids, ["yellow-perch", "crappie", "bluegill"]);
+  assert.ok(tackleTargets["minnow-float"].ids.includes("lake-whitefish"));
+  assert.match(tackleTargets["minnow-float"].note, /not this float method/);
+  assert.ok(tackleTargets.jig.sources.includes("https://www.ontario.ca/page/brook-trout"));
+  for (const slug of ["yellow-perch", "rainbow-trout", "brook-trout", "brown-trout", "muskellunge", "rock-bass", "pumpkinseed", "chinook-salmon", "coho-salmon"]) {
+    assert.ok(tackleTargets["inline-spinner"].sources.includes(`https://www.ontario.ca/page/${slug}`), slug);
+  }
+  assert.match(readFileSync(join(process.cwd(), "src/components/tackle/tackle-catalog.tsx"), "utf8"), /Possible targets:|All possible targets:|Target sources:/);
+});
+
+test("catalog requests intact WebP previews lazily but keeps original full-size PNG and caveats", () => {
+  const picture = readFileSync(join(process.cwd(), "src/components/tackle/tackle-picture.tsx"), "utf8");
+  const catalog = readFileSync(join(process.cwd(), "src/components/tackle/tackle-catalog.tsx"), "utf8");
+  assert.match(picture, /\/tackle\/previews\/\$\{id\}\.webp/);
+  assert.match(picture, /href=\{src\}/);
+  assert.match(picture, /object-contain/);
+  assert.match(picture, /loading="lazy" decoding="async"/);
+  assert.match(picture, /generated\.caveat/);
+  assert.match(catalog, /preview \/>/);
+  assert.match(catalog, /Check bait rules/);
+  assert.match(catalog, /Check method rules/);
+  assert.match(catalog, /Starting size:/);
+  assert.match(catalog, /Example technique:/);
+  assert.match(catalog, /aria-live="polite"/);
+  assert.match(catalog, /aria-label=\{`\$\{sourceLabel\(url\)\} — \$\{item\.title\} source/);
+  assert.match(readFileSync(join(process.cwd(), "src/app/tackle/page.tsx"), "utf8"), /<TackleCatalog items=\{tackleCatalog\}/);
+  for (const item of tackleCatalog) {
+    const preview = readFileSync(asset(`/tackle/previews/${item.id}.webp`));
+    const original = readFileSync(asset(generatedTackleImage(item.id)!.src));
+    assert.equal(preview.toString("ascii", 0, 4), "RIFF", item.id);
+    assert.equal(preview.toString("ascii", 8, 12), "WEBP", item.id);
+    assert.ok(preview.length < original.length, `${item.id}: preview must be lighter than original`);
+  }
 });

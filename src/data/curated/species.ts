@@ -110,6 +110,7 @@ const baseSpecies: Omit<SpeciesProfile, "distribution" | "depthGuidance" | "seas
       { name: "Small jig and grub", kind: "artificial", sizes: "1/16–1/8 oz", technique: "Short hops under a float or on bottom.", seasons: ["spring", "summer", "fall", "winter"] },
       { name: "Worm pieces", kind: "natural", sizes: "size 6–10 hook", rig: "Baitholder under a float", technique: "Simple shore method where worms are allowed.", seasons: ["spring", "summer", "fall"] },
       { name: "Small inline spinner", kind: "artificial", technique: "Slow retrieve along weeds.", seasons: ["spring", "summer"] },
+      { name: "Maggot", kind: "natural", sizes: "tiny ice jig", technique: "Tip a small ice jig for perch where bait and winter fishing are permitted.", seasons: ["winter"], liveBaitWarning: true },
     ],
     gear: { power: "Light to medium spinning", line: "4–8 lb" },
     handling: "Perch spines are sharp. Unhook with pliers and ice fish quickly in summer heat.",
@@ -130,6 +131,7 @@ const baseSpecies: Omit<SpeciesProfile, "distribution" | "depthGuidance" | "seas
     baits: [
       { name: "1/16 oz jig and small plastic", kind: "artificial", technique: "Slow swim or float around timber.", seasons: ["spring", "summer", "fall"] },
       { name: "Small minnow", kind: "natural", rig: "Float or tiny jig", technique: "Only where baitfish are legal.", seasons: ["spring", "winter"], liveBaitWarning: true },
+      { name: "Maggot", kind: "natural", sizes: "tiny ice jig", technique: "Use one or two larvae on a small ice jig where bait and winter fishing are permitted.", seasons: ["winter"], liveBaitWarning: true },
     ],
     gear: { power: "Light spinning", line: "4–6 lb" },
     handling: "Soft mouths tear easily. Use a small net and unhook gently.",
@@ -278,7 +280,6 @@ const baseSpecies: Omit<SpeciesProfile, "distribution" | "depthGuidance" | "seas
     baits: [
       { name: "Small jigging spoon", kind: "artificial", technique: "Short hops over remaining schools.", seasons: ["fall", "winter"] },
       { name: "Small minnow", kind: "natural", technique: "Ice fishing where baitfish are legal.", seasons: ["winter"], liveBaitWarning: true },
-      { name: "Maggot", kind: "natural", technique: "Tip a small ice jig where bait is legal.", seasons: ["winter"], liveBaitWarning: true },
     ],
     gear: { power: "Light to medium spinning or ice rod", line: "4–8 lb" },
     handling: "Soft-mouthed. Use a small hook and support the body.",
@@ -382,6 +383,7 @@ const baseSpecies: Omit<SpeciesProfile, "distribution" | "depthGuidance" | "seas
     baits: [
       { name: "Small jig", kind: "artificial", sizes: "1/32–1/16 oz", technique: "Dead-stick or twitch beside weeds.", seasons: ["spring", "summer", "fall", "winter"] },
       { name: "Worm piece", kind: "natural", sizes: "size 8–10 hook", rig: "Float", technique: "Where bait is legal.", seasons: ["spring", "summer"], liveBaitWarning: true },
+      { name: "Maggot", kind: "natural", sizes: "tiny ice jig", technique: "Tip a light ice jig where bait and winter fishing are permitted.", seasons: ["winter"], liveBaitWarning: true },
     ],
     gear: { power: "Light spinning", line: "4–6 lb" },
     handling: "Support the body. The dorsal spines are sharp and the mouth is small.",

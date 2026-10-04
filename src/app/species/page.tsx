@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SpeciesCard } from "@/components/species/species-card";
+import { SpeciesDirectory } from "@/components/species/species-directory";
 import { commonSpecies } from "@/data/curated/species";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageShell } from "@/components/ui/page-shell";
@@ -15,13 +15,10 @@ export default function SpeciesPage() {
       <PageHeader
         eyebrow="Fish and bait guide"
         title="Match your tackle to the fish"
-        intro="Choose a target to see habitat, seasonal behaviour, natural bait, artificial lures, rigging, technique, and whether your current medium spinning setup is a good fit."
+        intro="Find an Ontario fish by name, alias or region. Compare where it occurs, seasonal depth and habitat starting points, and lures before opening the full guide."
       />
-      <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {commonSpecies.map((species) => (
-          <SpeciesCard key={species.id} species={species} />
-        ))}
-      </div>
+      <p className="mt-4 text-sm text-slate-600">These are general habitat clues, not proof that a fish occurs at a specific spot or that its season is open. Check Fish ON-Line and current zone/waterbody rules before targeting.</p>
+      <SpeciesDirectory species={commonSpecies} />
     </PageShell>
   );
 }

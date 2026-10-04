@@ -81,7 +81,7 @@ export function FishSection({
             speciesId: entry.catalogSpeciesId,
           };
         }
-        const result = evaluateRule(rule, today, "sport");
+        const result = evaluateRule(rule, today, "sport", { hasWaterbodyExceptions: true });
         return {
           name: entry.name,
           label: result.label,
@@ -93,7 +93,7 @@ export function FishSection({
   }, [fmz, game, today]);
 
   return (
-    <SectionCard title="What you can catch" subtitle="Sport fish Ontario has recorded in the connected water">
+    <SectionCard title="Fish on record" subtitle="Ontario species records are not a guarantee of catch or permission to keep fish">
       {baitZone ? (
         <p className="mb-4 text-sm leading-6 text-slate-700">
           <span className="font-black">Bait zone: {baitZone}.</span> Do not move baitfish or leeches
@@ -105,7 +105,7 @@ export function FishSection({
       ) : null}
       {zoneToday.length > 0 ? (
         <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <p className="text-xs font-black uppercase tracking-wide text-slate-500">Today in this zone</p>
+          <p className="text-xs font-black uppercase tracking-wide text-slate-500">2026 zone-wide summary · exact-water check required</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {zoneToday.map((entry) => (
               <li key={entry.name}>
@@ -133,7 +133,7 @@ export function FishSection({
           ) : null}
           <KeyLegend title="Colour key" items={ZONE_STATUS_LEGEND} className="mt-3 border-t border-slate-200 pt-2" />
           <p className="mt-2 text-xs text-slate-600">
-            Zone-wide summary for today — not a waterbody-specific ruling.{" "}
+            Zone-wide summary for today — exceptions and boundaries are unresolved, not a waterbody-specific ruling.{" "}
             <TextLink href={`/rules?fmz=${fmz}`} size="xs">Full rules for {fmz?.replace("fmz-", "FMZ ")}</TextLink>
           </p>
         </div>
@@ -223,9 +223,12 @@ export function AccessSection({
 }) {
   return (
     <SectionCard
-      title="Where exactly to fish"
-      subtitle="Official Ontario access within 8 km. Numbers match the map."
+      title="Nearby access references"
+      subtitle="Ontario-mapped references within 8 km. Numbers match the map; pins do not grant permission."
     >
+      <p className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-bold text-amber-950">
+        Access is not verified. Private property and unknown ownership are not public fishing access. Check the land manager, posted signs, and current conditions before travelling or casting.
+      </p>
       {points.length === 0 ? (
         <EmptyState title="No mapped access point within 8 km">
           Ontario has no recorded launch or shore access this close. Check municipal parks or ask
@@ -276,6 +279,11 @@ export function AccessSection({
                       {point.evidence?.parkingRecorded ? " · parking" : ""}
                       {point.evidence?.userFeeRecorded ? " · fee" : ""}
                       {point.evidence?.surface ? ` · ${point.evidence.surface}` : ""}
+                    </span>
+                    <span className="mt-1 block text-xs font-bold text-amber-900">
+                      {point.evidence?.ownership?.toLowerCase().includes("private")
+                        ? "Private ownership recorded — do not enter without permission."
+                        : "Permission not verified — confirm access on site."}
                     </span>
                   </span>
                 </button>

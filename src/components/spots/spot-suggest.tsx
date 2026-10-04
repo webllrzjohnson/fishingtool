@@ -222,6 +222,7 @@ export function SpotSuggest({
         ) : null}
       </div>
       {locateError ? <p className="text-xs text-red-700">{locateError}</p> : null}
+      {origin?.kind === "gps" ? <p className="text-xs text-slate-600">Your GPS starting point stays out of the shareable page URL. Suggestion requests still use it to find nearby places.</p> : null}
 
       <label className="block text-sm font-bold text-slate-900">
         Or start from a town or harbour

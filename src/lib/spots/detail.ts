@@ -20,18 +20,22 @@ export type SpotDetail = {
     officialName: string;
     waterbodyLid: string;
     waterbodyType: string;
+    fishOnlineUrl: string;
+  } & ({
+    /** Search radius, not measured distance to the shoreline. */
+    matchDistanceM?: number;
+    matchConfidence: "nearby";
+  } | {
+    matchConfidence: "exact";
     fmz: string;
     thermalRegime?: string;
     surfaceAreaHa?: number;
     maxDepthM?: number;
     meanDepthM?: number;
-    /** How far the matched water sits from the searched point. */
-    matchDistanceM?: number;
     baitManagementZone?: string;
     municipality?: string;
     fmzRegulationUrl: string;
-    fishOnlineUrl: string;
-  };
+  });
   species: { name: string; catalogSpeciesId?: string; game: boolean }[];
   accessPoints: AccessPoint[];
   stocking: { species: string; year?: number; numberStocked?: number }[];
@@ -39,25 +43,31 @@ export type SpotDetail = {
   unavailable: string[];
 };
 
-function toWater(
+export function toWater(
   waterbody: OfficialWaterbody,
   context: { baitManagementZone?: string; municipality?: string },
 ): NonNullable<SpotDetail["water"]> {
-  const zone = waterbody.fmz.replace("fmz-", "");
-  return {
+  const base = {
     officialName: waterbody.officialName,
     waterbodyLid: waterbody.waterbodyLid,
     waterbodyType: waterbody.waterbodyType,
+    fishOnlineUrl: fishOnlineWaterbodyUrl(waterbody.waterbodyLid),
+  };
+  if (waterbody.matchConfidence !== "exact") {
+    return { ...base, matchConfidence: "nearby", matchDistanceM: waterbody.matchDistanceM };
+  }
+  const zone = waterbody.fmz.replace("fmz-", "");
+  return {
+    ...base,
+    matchConfidence: "exact",
     fmz: waterbody.fmz,
     thermalRegime: waterbody.thermalRegime,
     surfaceAreaHa: waterbody.surfaceAreaHa,
     maxDepthM: waterbody.maxDepthM,
     meanDepthM: waterbody.meanDepthM,
-    matchDistanceM: waterbody.matchDistanceM,
     baitManagementZone: context.baitManagementZone,
     municipality: context.municipality,
     fmzRegulationUrl: fmzRegulationUrl(zone),
-    fishOnlineUrl: fishOnlineWaterbodyUrl(waterbody.waterbodyLid),
   };
 }
 
@@ -82,7 +92,7 @@ export async function fetchSpotDetail(
   const context = contextResult.status === "fulfilled" ? contextResult.value : {};
 
   let stocking: SpotDetail["stocking"] = [];
-  if (waterbody) {
+  if (waterbody?.matchConfidence === "exact") {
     const stockingResult = await Promise.allSettled([
       fetchStockingByWaterbody(waterbody.waterbodyLid),
     ]);
@@ -97,14 +107,15 @@ export async function fetchSpotDetail(
     }
   }
 
-  const game = new Set(targetableSpecies(waterbody?.species ?? []).map((entry) => entry.name));
+  const exactWaterbody = waterbody?.matchConfidence === "exact" ? waterbody : null;
+  const game = new Set(targetableSpecies(exactWaterbody?.species ?? []).map((entry) => entry.name));
 
   return {
     name,
     latitude,
     longitude,
     water: waterbody ? toWater(waterbody, context) : undefined,
-    species: (waterbody?.species ?? []).map((entry) => ({
+    species: (exactWaterbody?.species ?? []).map((entry) => ({
       name: entry.name,
       catalogSpeciesId: entry.catalogSpeciesId,
       game: game.has(entry.name),

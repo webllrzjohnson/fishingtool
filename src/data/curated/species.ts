@@ -1,10 +1,11 @@
 import type { SpeciesProfile } from "@/lib/types";
 import { destinationOntarioSource } from "@/lib/sources";
 import { getSpeciesImage } from "@/data/curated/species-images";
+import { speciesGuidance } from "@/data/curated/species-guidance";
 
 const source = destinationOntarioSource;
 
-export const commonSpecies: SpeciesProfile[] = [
+const baseSpecies: Omit<SpeciesProfile, "distribution" | "depthGuidance" | "seasonalDepth" | "identificationNote" | "guideSources">[] = [
   {
     id: "walleye",
     name: "Walleye",
@@ -56,13 +57,13 @@ export const commonSpecies: SpeciesProfile[] = [
     summary: "A beginner-friendly warmwater fish that lives in weeds, docks, timber, and slop. Weedless plastics are the shore-fishing staple.",
     habitat: ["Weedy bays and pads", "Docks, timber, and laydowns", "Shallow cover on sunny days"],
     seasonalPattern: {
-      spring: "Shallow spawning bays; respect catch-and-release windows.",
+      spring: "Shallow spawning bays; do not target bass while the season is closed. Check the exact zone and waterbody before fishing.",
       summer: "Thick cover, docks, and early/late topwater.",
       fall: "Baitfish and remaining weeds; crankbaits and spinnerbaits.",
       winter: "Limited open-water bite; some ice fisheries exist.",
     },
     baits: [
-      { name: "Soft plastic worm or senko", kind: "artificial", sizes: "4–5 in", rig: "2/0–4/0 EWG, weedless", technique: "Weightless or texas-rig through cover.", seasons: ["spring", "summer", "fall"] },
+      { name: "Soft plastic worm", kind: "artificial", sizes: "4–5 in", rig: "2/0–4/0 EWG, weedless", technique: "Weightless or Texas-rig through cover.", seasons: ["spring", "summer", "fall"] },
       { name: "Spinnerbait", kind: "artificial", sizes: "3/8 oz", technique: "Burn along weed edges and wind-blown banks.", seasons: ["spring", "summer"] },
       { name: "Shallow crankbait", kind: "artificial", technique: "Cast to visible cover and deflect off wood.", seasons: ["summer", "fall"] },
       { name: "Topwater popper", kind: "artificial", technique: "Walk or pop at first and last light.", seasons: ["summer"] },
@@ -78,7 +79,7 @@ export const commonSpecies: SpeciesProfile[] = [
     summary: "Ontario’s open-water bass. Smallmouth use rock, current, and reefs and fight harder than their size suggests.",
     habitat: ["Rocky shorelines and reefs", "Current seams and river rock", "Drop-offs and gravel"],
     seasonalPattern: {
-      spring: "Shallow rock and spawning areas during catch-and-release periods.",
+      spring: "Shallow rock and spawning areas; do not target bass while the season is closed. Check the exact zone and waterbody before fishing.",
       summer: "Deeper rock, smallmouth often take tubes, Ned rigs, and topwater.",
       fall: "Baitfish schools and remaining rock points.",
       winter: "Deep rock basins in some ice fisheries.",
@@ -98,7 +99,7 @@ export const commonSpecies: SpeciesProfile[] = [
     name: "Yellow perch",
     aliases: ["perch"],
     summary: "A family-friendly panfish that schools along weeds, harbours, and ice. Small jigs and worm pieces are enough.",
-    habitat: ["Harbours and weed edges", "Piersons, docks, and slow current", "Ice basins over remaining weeds"],
+    habitat: ["Harbours and weed edges", "Piers, docks, and slow current", "Ice basins over remaining weeds"],
     seasonalPattern: {
       spring: "Shallow weeds and harbours after ice-out.",
       summer: "Weed edges and shade; small presentations.",
@@ -149,7 +150,7 @@ export const commonSpecies: SpeciesProfile[] = [
     baits: [
       { name: "Inline spinner", kind: "artificial", sizes: "size 0–2", technique: "Across and down in current.", seasons: ["spring", "summer"] },
       { name: "Small spoon", kind: "artificial", technique: "Cast along cold shorelines and drop-offs.", seasons: ["spring", "fall"] },
-      { name: "Muddler or woolly streamer", kind: "artificial", technique: "Swing or strip in rivers.", seasons: ["spring", "summer", "fall"] },
+      { name: "Streamer fly", kind: "artificial", technique: "Swing or strip in rivers.", seasons: ["spring", "summer", "fall"] },
     ],
     gear: { power: "Light to medium spinning or fly", line: "4–8 lb" },
     handling: "Keep trout in cold water, never squeeze, and revive facing into current. Barbless hooks help.",
@@ -163,7 +164,7 @@ export const commonSpecies: SpeciesProfile[] = [
     habitat: ["Deep lakes and Great Lakes", "Spring shallows after ice-out", "Shoals and humps"],
     seasonalPattern: {
       spring: "Shallow enough for spoons from shore or boat.",
-      summer: "Typically 12–18 m and deeper; trolling or jigging.",
+      summer: "Follow cold water deeper as surface water warms; trolling or jigging.",
       fall: "Return to shallower structure.",
       winter: "A major ice fishery on many lakes.",
     },
@@ -171,7 +172,7 @@ export const commonSpecies: SpeciesProfile[] = [
       { name: "Spoon", kind: "artificial", sizes: "medium to large", technique: "Cast shallows in spring or troll deeper later.", seasons: ["spring", "summer", "fall"] },
       { name: "Jigging spoon", kind: "artificial", technique: "Vertical jig over structure.", seasons: ["summer", "winter"] },
     ],
-    gear: { power: "Medium to medium-heavy; trolling setups for summer", line: "10–15 lb" },
+    gear: { power: "Medium spinning for seasonal shore casting; separate trolling rod/reel for boat fishing", line: "10–15 lb mono shore starting point; trolling line depends on method" },
     handling: "Lake trout have fragile jaws. Support the body and avoid long air exposure.",
     source,
   },
@@ -188,9 +189,11 @@ export const commonSpecies: SpeciesProfile[] = [
       winter: "Limited open or ice opportunities depending on waterbody.",
     },
     baits: [
-      { name: "Small spoon or spinner", kind: "artificial", technique: "Cast across current or along pond shore.", seasons: ["spring", "summer", "fall"] },
+      { name: "Small spoon", kind: "artificial", technique: "Cast across current or along pond shore.", seasons: ["spring", "summer", "fall"] },
+      { name: "Small inline spinner", kind: "artificial", technique: "Retrieve across current or along pond shore.", seasons: ["spring", "summer", "fall"] },
       { name: "Worm under a float", kind: "natural", technique: "Stocked ponds where worms are allowed.", seasons: ["spring", "summer"] },
-      { name: "Bead or nymph", kind: "artificial", technique: "Tributary steelhead where legal.", seasons: ["spring", "fall"] },
+      { name: "Roe-imitation bead", kind: "artificial", technique: "Drift in tributary current where legal.", seasons: ["spring", "fall"] },
+      { name: "Bead-head nymph", kind: "artificial", technique: "Drift in tributary current where legal.", seasons: ["spring", "fall"] },
     ],
     gear: { power: "Medium spinning", line: "6–10 lb" },
     handling: "Keep steelhead in the water as much as possible. Check tributary hook, bait, and sanctuary rules first.",
@@ -209,8 +212,10 @@ export const commonSpecies: SpeciesProfile[] = [
       winter: "Limited; verify open seasons.",
     },
     baits: [
-      { name: "Small crankbait or spoon", kind: "artificial", technique: "Cast to cover and current seams.", seasons: ["spring", "fall"] },
-      { name: "Dry fly or nymph", kind: "artificial", technique: "Match local hatches on rivers such as the Grand.", seasons: ["spring", "summer"] },
+      { name: "Small crankbait", kind: "artificial", technique: "Cast to cover and current seams.", seasons: ["spring", "fall"] },
+      { name: "Small spoon", kind: "artificial", technique: "Cast to cover and current seams.", seasons: ["spring", "fall"] },
+      { name: "Dry fly", kind: "artificial", technique: "Drift on the surface during local hatches.", seasons: ["spring", "summer"] },
+      { name: "Bead-head nymph", kind: "artificial", technique: "Drift below the surface in river current.", seasons: ["spring", "summer"] },
     ],
     gear: { power: "Light to medium spinning or fly", line: "6–8 lb" },
     handling: "Photograph quickly and revive in current. Brown trout are easily stressed in warm water.",
@@ -219,7 +224,7 @@ export const commonSpecies: SpeciesProfile[] = [
   {
     id: "pacific-salmon",
     name: "Pacific salmon",
-    aliases: ["chinook", "coho", "pink salmon", "chinook salmon", "king salmon"],
+    aliases: ["chinook", "coho", "chinook salmon", "coho salmon", "king salmon"],
     summary: "Great Lakes salmon are a seasonal shore fishery at river mouths and a boat fishery offshore. Tributary rules are strict.",
     habitat: ["Lake Ontario and Huron shore", "River mouths in late summer and fall", "Tributary runs"],
     seasonalPattern: {
@@ -251,7 +256,8 @@ export const commonSpecies: SpeciesProfile[] = [
     },
     baits: [
       { name: "Bucktail spinner", kind: "artificial", sizes: "large", technique: "Figure-eight at boatside after a long retrieve.", seasons: ["summer", "fall"] },
-      { name: "Large jerkbait or rubber", kind: "artificial", technique: "Cover water; dedicated heavy gear required.", seasons: ["fall"] },
+      { name: "Large jerkbait", kind: "artificial", technique: "Twitch and pause; dedicated heavy gear required.", seasons: ["fall"] },
+      { name: "Large soft rubber", kind: "artificial", technique: "Swim or lift and fall; dedicated heavy gear required.", seasons: ["fall"] },
     ],
     gear: { power: "Heavy baitcasting, 8–10 ft", line: "80–100 lb braid", leader: "Fluoro or steel muskie leader" },
     handling: "Use a large net, cutters, and two people. Keep the fish horizontal and in the water. Many waters are catch-and-release.",
@@ -271,7 +277,8 @@ export const commonSpecies: SpeciesProfile[] = [
     },
     baits: [
       { name: "Small jigging spoon", kind: "artificial", technique: "Short hops over remaining schools.", seasons: ["fall", "winter"] },
-      { name: "Minnow or maggot", kind: "natural", technique: "Ice fishing where bait is legal.", seasons: ["winter"], liveBaitWarning: true },
+      { name: "Small minnow", kind: "natural", technique: "Ice fishing where baitfish are legal.", seasons: ["winter"], liveBaitWarning: true },
+      { name: "Maggot", kind: "natural", technique: "Tip a small ice jig where bait is legal.", seasons: ["winter"], liveBaitWarning: true },
     ],
     gear: { power: "Light to medium spinning or ice rod", line: "4–8 lb" },
     handling: "Soft-mouthed. Use a small hook and support the body.",
@@ -290,7 +297,8 @@ export const commonSpecies: SpeciesProfile[] = [
       winter: "Much slower.",
     },
     baits: [
-      { name: "Corn or dough", kind: "natural", sizes: "size 4–8 strong hook", rig: "Sliding sinker", technique: "Hair-rig or simple bottom rig where bait is allowed.", seasons: ["spring", "summer", "fall"] },
+      { name: "Corn", kind: "natural", sizes: "size 4–8 strong hook", rig: "Sliding sinker", technique: "Hair-rig or simple bottom rig where bait is allowed.", seasons: ["spring", "summer", "fall"] },
+      { name: "Dough bait", kind: "natural", rig: "Bottom rig", technique: "Present near bottom where bait is allowed.", seasons: ["spring", "summer", "fall"] },
       { name: "Boilie-style bait", kind: "natural", technique: "Same bottom-rig approach in permitted waters.", seasons: ["summer"] },
     ],
     gear: { power: "Medium spinning", line: "12–15 lb" },
@@ -310,8 +318,10 @@ export const commonSpecies: SpeciesProfile[] = [
       winter: "Slow; not a primary target.",
     },
     baits: [
-      { name: "Worm or cut bait", kind: "natural", sizes: "size 2–1/0", rig: "Bottom rig with enough weight", technique: "Fish the bottom in current where bait is legal.", seasons: ["spring", "summer", "fall"], liveBaitWarning: true },
-      { name: "Stink or dough bait", kind: "natural", technique: "Same bottom presentation in permitted waters.", seasons: ["summer"] },
+      { name: "Worm on bottom rig", kind: "natural", sizes: "size 2–1/0", rig: "Bottom rig with enough weight", technique: "Fish the bottom in current where bait is legal.", seasons: ["spring", "summer", "fall"], liveBaitWarning: true },
+      { name: "Cut bait", kind: "natural", sizes: "size 2–1/0", rig: "Bottom rig with enough weight", technique: "Fish the bottom in current where bait is legal; check baitfish rules.", seasons: ["spring", "summer", "fall"], liveBaitWarning: true },
+      { name: "Stink bait", kind: "natural", technique: "Bottom presentation in permitted waters.", seasons: ["summer"] },
+      { name: "Dough bait", kind: "natural", technique: "Bottom presentation in permitted waters.", seasons: ["summer"] },
     ],
     gear: { power: "Medium spinning", line: "12–20 lb" },
     handling: "Watch the spines. Support the belly and keep fingers away from the dorsal and pectoral spines.",
@@ -350,7 +360,7 @@ export const commonSpecies: SpeciesProfile[] = [
       winter: "Occasional through the ice in shallow basins.",
     },
     baits: [
-      { name: "Tiny jig or grub", kind: "artificial", sizes: "1/32–1/16 oz", technique: "Short hops under a float.", seasons: ["spring", "summer", "fall"] },
+      { name: "Tiny jig and grub", kind: "artificial", sizes: "1/32–1/16 oz", technique: "Short hops under a float.", seasons: ["spring", "summer", "fall"] },
       { name: "Worm piece", kind: "natural", sizes: "size 8–10 hook", technique: "Where bait is legal.", seasons: ["spring", "summer"], liveBaitWarning: true },
     ],
     gear: { power: "Light spinning", line: "4–6 lb" },
@@ -378,6 +388,11 @@ export const commonSpecies: SpeciesProfile[] = [
     source,
   },
 ];
+
+export const commonSpecies: SpeciesProfile[] = baseSpecies.map((species) => ({
+  ...species,
+  ...speciesGuidance(species.id),
+}));
 
 const byId = new Map(commonSpecies.map((species) => [species.id, species]));
 

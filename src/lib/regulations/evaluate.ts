@@ -115,6 +115,14 @@ export function evaluateRule(
   const speciesId = speciesIdFor(rule);
   const limit = limitFor(rule, licenceType);
   const exceptionIds = options.exceptions?.map((exception) => exception.id) ?? [];
+  const parsedDate = parseDate(date);
+  if (parsedDate && rule.sourceYear !== undefined && parsedDate.year !== rule.sourceYear) {
+    return {
+      speciesId, status: "unknown", label: "Check current edition",
+      reason: `This table is for ${rule.sourceYear}; verify the rules for ${parsedDate.year} with Ontario.`,
+      requiresOfficialCheck: true,
+    };
+  }
   const forcedOfficialCheck = Boolean(
     exceptionIds.length || options.hasWaterbodyExceptions || options.ambiguousBoundary,
   );

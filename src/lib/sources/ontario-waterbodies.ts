@@ -384,7 +384,7 @@ async function queryWaterbodyAtPoint(
 ): Promise<OfficialWaterbody[]> {
   const params = new URLSearchParams({
     f: "json",
-    where: "FISH_SPECIES_SUMMARY IS NOT NULL",
+    where: "1=1",
     geometry: `${longitude},${latitude}`,
     geometryType: "esriGeometryPoint",
     inSR: "4326",
@@ -415,24 +415,29 @@ export async function fetchWaterbodyForPoint(
   longitude: number,
   options?: { maxDistanceM?: number },
 ): Promise<OfficialWaterbody | null> {
-  const distances = [250, 1000, 2000, 5000, 10000, 0];
+  const distances = [250, 1000, 2000, 5000, 10000];
   const maxDistanceM = options?.maxDistanceM ?? 10000;
-  for (const distanceM of distances.filter((distance) => distance <= maxDistanceM || distance === 0)) {
-    const nearby = await queryWaterbodyAtPoint(
-      latitude,
-      longitude,
-      distanceM === 0 ? undefined : distanceM,
-    );
+  // A proximity search can include the wrong side of a shoreline or FMZ boundary.
+  const intersections = await queryWaterbodyAtPoint(latitude, longitude);
+  if (intersections.length > 1) return null; // Overlapping records are unresolved, not a licence to pick the largest.
+  if (intersections.length === 1) {
+    const best = intersections[0];
+    const coordinates = await fetchWaterbodyExtent(best.waterbodyLid);
+    return { ...best, coordinates, matchConfidence: "exact" };
+  }
+  for (const distanceM of distances.filter((distance) => distance <= maxDistanceM)) {
+    const nearby = await queryWaterbodyAtPoint(latitude, longitude, distanceM);
     if (!nearby.length) continue;
-    const best = nearby
-      .sort((left, right) => (right.surfaceAreaHa ?? 0) - (left.surfaceAreaHa ?? 0))[0];
+    // A radius is not a measured distance to the geometry. Do not pretend to rank by area.
+    if (nearby.length !== 1) return null;
+    const best = nearby[0];
     if (!best) continue;
     const coordinates = await fetchWaterbodyExtent(best.waterbodyLid);
     return {
       ...best,
       coordinates,
-      matchConfidence: distanceM === 0 ? "exact" : "nearby",
-      matchDistanceM: distanceM === 0 ? undefined : distanceM,
+      matchConfidence: "nearby",
+      matchDistanceM: distanceM,
     };
   }
 

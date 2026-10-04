@@ -129,4 +129,16 @@ describe("deterministic regulation evaluation", () => {
     assert.equal(result.status, "open");
     assert.match(result.reason, /Combined-species limit/);
   });
+
+  it("never evaluates a 2026 table for another year, even when exceptions are unresolved", () => {
+    const rule = { ...standardRule, sourceYear: 2026 };
+    for (const date of ["2025-06-15", "2027-06-15"]) {
+      const result = evaluateRule(rule, date, "sport", { hasWaterbodyExceptions: true });
+      assert.equal(result.status, "unknown");
+      assert.equal(result.limit, undefined);
+      assert.equal(result.requiresOfficialCheck, true);
+      assert.match(result.reason, /2026/);
+    }
+    assert.equal(evaluateRule(rule, "2026-06-15", "sport").status, "open");
+  });
 });

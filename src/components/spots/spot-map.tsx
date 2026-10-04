@@ -30,7 +30,7 @@ function accessFacts(point: NearbyAccessPoint) {
     point.evidence?.ownership,
   ].filter((fact): fact is string => Boolean(fact));
   if (facts.length === 0) {
-    return "Official Ontario access. Parking and fees are not listed on this record.";
+    return "Ontario-mapped reference. Permission, parking and fees are not confirmed.";
   }
   return facts.join(" · ");
 }
@@ -128,6 +128,11 @@ export function SpotMap({
                 {selected.evidence?.siteName?.trim() || selected.type}
               </p>
               <p>{accessFacts(selected)}</p>
+              <p className="font-bold text-amber-900">
+                {selected.evidence?.ownership?.toLowerCase().includes("private")
+                  ? "Private ownership — do not enter without permission."
+                  : "Access permission unknown — verify with the land manager and signs."}
+              </p>
             </div>
           </Popup>
         ) : null}

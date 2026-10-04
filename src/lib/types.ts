@@ -65,6 +65,11 @@ export type SpeciesProfile = {
   aliases: string[];
   image?: SpeciesImage;
   summary: string;
+  distribution: string;
+  depthGuidance: string;
+  seasonalDepth: string;
+  identificationNote?: string;
+  guideSources: SourceRecord[];
   habitat: string[];
   seasonalPattern: Record<"spring" | "summer" | "fall" | "winter", string>;
   baits: BaitOption[];

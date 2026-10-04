@@ -3,11 +3,13 @@ import { describe, it } from "node:test";
 import {
   escapeSqlLiteral,
   extentCenter,
+  fetchWaterbodyForPoint,
   nameRelevance,
   parseWaterbodyFeatures,
   rankWaterbodyMatches,
   validateWaterbodyLid,
 } from "../src/lib/sources/ontario-waterbodies";
+import { toWater } from "../src/lib/spots/detail";
 
 const northWindLakeFixture = {
   features: [
@@ -126,5 +128,64 @@ describe("Ontario waterbody adapter", () => {
       "trout",
     );
     assert.equal(ranked[0].surfaceAreaHa, 900);
+  });
+
+  it("queries exact intersections before proximity and does not require a species summary", async () => {
+    const originalFetch = globalThis.fetch;
+    const queries: URL[] = [];
+    globalThis.fetch = async (input) => {
+      const url = new URL(String(input));
+      queries.push(url);
+      if (url.searchParams.get("returnExtentOnly") === "true") {
+        return Response.json({ extent: { xmin: -80, xmax: -78, ymin: 43, ymax: 45 } });
+      }
+      return Response.json({ features: [{ attributes: {
+        WATERBODY_LID: "16-4308-55224", OFFICIAL_WATERBODY_NAME: "North Wind Lake",
+        FISHERIES_MANAGEMENT_ZONE_ID: 6,
+      } }] });
+    };
+    try {
+      const match = await fetchWaterbodyForPoint(44, -79);
+      assert.equal(match?.matchConfidence, "exact");
+      assert.equal(match?.species.length, 0);
+      assert.equal(queries[0].searchParams.has("distance"), false);
+      assert.equal(queries[0].searchParams.get("where"), "1=1");
+      assert.equal(queries.filter((url) => url.searchParams.has("distance")).length, 0);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("labels a proximity fallback as nearby and does not pick between ambiguous matches", async () => {
+    const originalFetch = globalThis.fetch;
+    const queries: URL[] = [];
+    let ambiguous = false;
+    globalThis.fetch = async (input) => {
+      const url = new URL(String(input));
+      queries.push(url);
+      if (url.searchParams.get("returnExtentOnly") === "true") {
+        return Response.json({ extent: { xmin: -80, xmax: -78, ymin: 43, ymax: 45 } });
+      }
+      const feature = (lid: string) => ({ attributes: {
+        WATERBODY_LID: lid, OFFICIAL_WATERBODY_NAME: lid, FISHERIES_MANAGEMENT_ZONE_ID: 6,
+      } });
+      return Response.json({ features: url.searchParams.has("distance")
+        ? [feature("16-4308-55224"), ...(ambiguous ? [feature("16-4308-55225")] : [])] : [] });
+    };
+    try {
+      const nearby = await fetchWaterbodyForPoint(44, -79, { maxDistanceM: 250 });
+      assert.equal(nearby?.matchConfidence, "nearby");
+      assert.equal(nearby?.matchDistanceM, 250);
+      assert.equal(queries[0].searchParams.has("distance"), false);
+      ambiguous = true;
+      assert.equal(await fetchWaterbodyForPoint(44, -79, { maxDistanceM: 250 }), null);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("does not serialize a nearby candidate's FMZ as the spot's zone", () => {
+    const [record] = parseWaterbodyFeatures(northWindLakeFixture, { matchConfidence: "nearby", matchDistanceM: 250 });
+    const candidate = toWater(record, { baitManagementZone: "Southern" });
+    assert.equal(candidate.matchConfidence, "nearby");
+    assert.equal("fmz" in candidate, false);
+    assert.equal("baitManagementZone" in candidate, false);
+    assert.equal("fmzRegulationUrl" in candidate, false);
   });
 });

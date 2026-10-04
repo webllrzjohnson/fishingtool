@@ -11,14 +11,23 @@ export function SpeciesCard({ species }: { species: SpeciesProfile }) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {image ? (
-        <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
-          <SpeciesIllustration image={image} sizes="(max-width: 768px) 100vw, 320px" className="max-h-36" />
+        <div className="border-b border-slate-100 bg-slate-50 px-4 py-4">
+          <SpeciesIllustration image={image} sizes="(max-width: 768px) 100vw, 320px" className="max-h-52" />
+          <p className="mt-2 text-xs text-slate-500">{image.alt} · {image.credit}</p>
         </div>
       ) : null}
       <div className="flex flex-1 flex-col p-5">
         <p className="text-xs font-black uppercase tracking-wide text-teal-800">{species.aliases.join(" · ") || "Ontario sport fish"}</p>
         <h2 className="mt-2 text-2xl font-black">{species.name}</h2>
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{species.summary}</p>
+        <div className="mt-4 rounded-xl bg-teal-50 p-3 text-sm text-slate-800">
+          <p className="font-black text-teal-900">Where in Ontario</p>
+          <p className="mt-1">{species.distribution}</p>
+        </div>
+        <div className="mt-3 text-sm text-slate-700">
+          <p className="font-black">Depth & habitat</p>
+          <p className="mt-1">{species.depthGuidance}</p>
+        </div>
         <div className="mt-4">
           <p className="text-xs font-black uppercase tracking-wide text-slate-500">Common baits</p>
           <p className="mt-1 text-sm text-slate-700">{natural.map((bait) => bait.name).join(", ") || "See lure guidance"}</p>

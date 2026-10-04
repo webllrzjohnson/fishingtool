@@ -13,6 +13,7 @@ import { GettingThere } from "@/components/spots/getting-there";
 import { AccessSection, FishSection } from "@/components/spots/spot-sections";
 import { SaveSpotTrip } from "@/components/spots/save-spot-trip";
 import { withAccessPointLocation } from "@/lib/access-points";
+import { suggestShareQuery } from "@/lib/spots/share";
 import type { SpotDetail } from "@/lib/spots/detail";
 import type { SpotSuggestion } from "@/lib/spots/search";
 
@@ -66,21 +67,7 @@ export function SpotFinder({
   );
 
   const shareSuggest = useCallback((state: SuggestShareState | null) => {
-    const params = new URLSearchParams(window.location.search);
-    if (!state) {
-      for (const key of ["suggest", "olat", "olon", "oname", "mode", "range", "species"]) {
-        params.delete(key);
-      }
-    } else {
-      params.set("suggest", "1");
-      params.set("olat", state.origin.coordinates.latitude.toFixed(5));
-      params.set("olon", state.origin.coordinates.longitude.toFixed(5));
-      params.set("oname", state.origin.label);
-      params.set("mode", state.mode);
-      params.set("range", String(state.range));
-      if (state.species) params.set("species", state.species);
-      else params.delete("species");
-    }
+    const params = suggestShareQuery(new URLSearchParams(window.location.search), state);
     const next = params.toString();
     const current = window.location.search.replace(/^\?/, "");
     if (next === current) return;
@@ -139,16 +126,21 @@ export function SpotFinder({
         <>
           <div>
             <h2 className="text-2xl font-black tracking-tight">{detail.name}</h2>
-            {detail.water ? (
+            {detail.water?.matchConfidence === "exact" ? (
               <p className="mt-1 text-sm text-slate-600">
                 {detail.water.officialName}
                 {detail.water.municipality ? ` · ${detail.water.municipality}` : ""}
                 {" · "}
                 {detail.water.fmz.replace("fmz-", "FMZ ")}
               </p>
+            ) : detail.water ? (
+              <Callout tone="amber">
+                Nearby water candidate: {detail.water.officialName} (within a {detail.water.matchDistanceM ?? "unknown"} m search radius, not an exact match). Its FMZ and species do not establish the zone or fish at this pin. Verify the exact water and boundary in{" "}
+                <TextLink href={detail.water.fishOnlineUrl} external>Fish ON-Line</TextLink> before relying on rules.
+              </Callout>
             ) : (
               <p className="mt-1 text-sm text-slate-600">
-                No official waterbody record sits on this pin. Fish details below may be empty.
+                Waterbody and zone unresolved at this pin. Verify the exact water and boundary in Ontario Fish ON-Line.
               </p>
             )}
           </div>
@@ -175,20 +167,20 @@ export function SpotFinder({
           <FishSection
             species={detail.species}
             stocking={detail.stocking}
-            fmz={detail.water?.fmz}
-            baitZone={detail.water?.baitManagementZone}
+            fmz={detail.water?.matchConfidence === "exact" ? detail.water.fmz : undefined}
+            baitZone={detail.water?.matchConfidence === "exact" ? detail.water.baitManagementZone : undefined}
           />
 
           <SectionCard title="Conditions and rules">
             <WeatherPanel coordinates={coordinates} />
             <div className="mt-4 flex flex-wrap gap-2">
               <ButtonLink
-                href={detail.water ? `/rules?fmz=${detail.water.fmz}` : "/rules"}
+                href={detail.water?.matchConfidence === "exact" ? `/rules?fmz=${detail.water.fmz}` : "/rules"}
                 variant="primary"
               >
                 Check the rules
               </ButtonLink>
-              {detail.water ? (
+              {detail.water?.matchConfidence === "exact" ? (
                 <ButtonLink href={detail.water.fmzRegulationUrl} external variant="secondary">
                   Official zone summary
                 </ButtonLink>

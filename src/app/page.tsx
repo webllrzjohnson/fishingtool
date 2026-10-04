@@ -8,7 +8,7 @@ import type { SuggestMode } from "@/lib/spots/suggest";
 export const metadata = {
   title: "Find a fishing spot in Ontario",
   description:
-    "Search any Ontario town, harbour, lake, or river to see it on the map, how to drive there, the official access points, the fish on record, and the rules that apply.",
+    "Search Ontario places for map and nearby access references, fish records when the waterbody is resolved, and zone-wide rule summaries to verify with Ontario.",
 };
 
 /**
@@ -84,11 +84,11 @@ export default async function Home({
             Ontario fishing
           </p>
           <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-            Type a place. Get everything you need to fish it.
+            Find a place. Verify the water, rules, and access.
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-teal-50/85">
-            The map, how to drive there from where you are, the official access points, the fish on
-            record, live conditions, and the rules that apply.
+            Explore the map, nearby access references, fish records, and zone-wide rules.
+            Check exact-water exceptions and permission before you fish.
           </p>
         </div>
       </section>

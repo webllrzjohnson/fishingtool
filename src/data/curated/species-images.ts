@@ -1,6 +1,6 @@
 import type { SpeciesImage } from "@/lib/types";
 
-/** Public-domain fish illustrations (USFWS Duane Raver scans and FMIB plates). */
+/** Bundled public-domain fish images: historical plates, illustrations and USFWS photos. */
 export const speciesImageCatalog: Record<string, SpeciesImage> = {
   walleye: {
     alt: "Walleye side illustration",
@@ -19,10 +19,10 @@ export const speciesImageCatalog: Record<string, SpeciesImage> = {
     sourceUrl: "https://commons.wikimedia.org/wiki/File:FMIB_48136_Esox_lucius_(Linnaeus).jpeg",
   },
   "largemouth-bass": {
-    alt: "Largemouth bass side illustration",
+    alt: "Photograph of a largemouth bass",
     localSrc: "/species/largemouth-bass.jpg",
     remoteSrc: "https://www.fws.gov/sites/default/files/images/2024-05/c88a7155.jpg",
-    credit: "Duane Raver / U.S. Fish and Wildlife Service",
+    credit: "Ryan Hagerty / U.S. Fish and Wildlife Service",
     license: "Public Domain",
     sourceUrl: "https://www.fws.gov/media/largemouth-bass-0",
   },
@@ -43,10 +43,10 @@ export const speciesImageCatalog: Record<string, SpeciesImage> = {
     sourceUrl: "https://www.fws.gov/media/yellow-perch-5",
   },
   crappie: {
-    alt: "Black crappie side illustration",
+    alt: "Photograph of a black crappie",
     localSrc: "/species/crappie.jpg",
     remoteSrc: "https://www.fws.gov/sites/default/files/images/2017-05/26190.jpg",
-    credit: "Duane Raver / U.S. Fish and Wildlife Service",
+    credit: "Brett Billings / U.S. Fish and Wildlife Service",
     license: "Public Domain",
     sourceUrl: "https://www.fws.gov/media/black-crappie-0",
   },
@@ -83,10 +83,10 @@ export const speciesImageCatalog: Record<string, SpeciesImage> = {
     sourceUrl: "https://www.fws.gov/media/brown-trout-0",
   },
   "pacific-salmon": {
-    alt: "Chinook salmon side illustration",
+    alt: "Photograph of a Chinook salmon (not coho)",
     localSrc: "/species/pacific-salmon.jpg",
     remoteSrc: "https://www.fws.gov/sites/default/files/images/2008-11/12177.jpg",
-    credit: "U.S. Fish and Wildlife Service",
+    credit: "Dan Cox / U.S. Fish and Wildlife Service",
     license: "Public Domain",
     sourceUrl: "https://www.fws.gov/media/chinook-salmon-0",
   },
@@ -94,7 +94,7 @@ export const speciesImageCatalog: Record<string, SpeciesImage> = {
     alt: "Muskellunge side illustration",
     localSrc: "/species/muskellunge.jpg",
     remoteSrc: "https://www.fws.gov/sites/default/files/images/2024-03-6/28738.jpg",
-    credit: "Duane Raver / U.S. Fish and Wildlife Service",
+    credit: "Timothy Knepp / U.S. Fish and Wildlife Service",
     license: "Public Domain",
     sourceUrl: "https://www.fws.gov/media/muskellunge-0",
   },

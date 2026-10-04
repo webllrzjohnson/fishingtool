@@ -18,8 +18,11 @@ type Status = "idle" | "locating" | "denied" | "unsupported" | "failed";
 export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: string }) {
   const [origin, setOrigin] = useState<Coordinates | null>(null);
   const [status, setStatus] = useState<Status>("idle");
-  const [drive, setDrive] = useState<{ minutes: number; source: "road" | "estimate" } | null>(null);
-  const [drivePending, setDrivePending] = useState(false);
+  const [driveResult, setDriveResult] = useState<{ key: string; minutes?: number; source?: "road" | "estimate" } | null>(null);
+  const driveKey = origin ? `${origin.latitude},${origin.longitude}|${spot.latitude},${spot.longitude}` : "";
+  const drivePending = Boolean(origin && driveResult?.key !== driveKey);
+  const drive = driveResult?.key === driveKey && driveResult.minutes !== undefined && driveResult.source
+    ? { minutes: driveResult.minutes, source: driveResult.source } : null;
 
   function locate() {
     if (!("geolocation" in navigator)) {
@@ -49,7 +52,6 @@ export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: 
       dlat: spot.latitude.toFixed(5),
       dlon: spot.longitude.toFixed(5),
     });
-    setDrivePending(true);
     fetch(`/api/spots/drive?${params}`, { signal: controller.signal })
       .then(async (response) => {
         const body = await response.json();
@@ -57,17 +59,14 @@ export function GettingThere({ spot, spotName }: { spot: Coordinates; spotName: 
         return body as { minutes: number; source: "road" | "estimate" };
       })
       .then((body) => {
-        setDrive(body);
+        setDriveResult({ key: driveKey, ...body });
       })
       .catch((reason) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
-        setDrive(null);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setDrivePending(false);
+        setDriveResult({ key: driveKey });
       });
     return () => controller.abort();
-  }, [origin, spot.latitude, spot.longitude]);
+  }, [origin, spot.latitude, spot.longitude, driveKey]);
 
   const distanceKm = origin ? distanceBetweenKm(origin, spot) : undefined;
   const bearing = origin ? directionFrom(origin, spot) : undefined;

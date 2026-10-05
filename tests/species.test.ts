@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { getSpeciesImage, speciesImageCatalog } from "../src/data/curated/species-images";
+
 import { commonSpecies, getSpeciesById, matchSpecies } from "../src/data/curated/species";
 import { gearFitForSpecies } from "../src/lib/gear-fit";
 
@@ -47,16 +50,21 @@ describe("species and bait catalog", () => {
     assert.equal(gearFitForSpecies(getSpeciesById("northern-pike")).level, "workable");
   });
 
-  it("includes public-domain identification illustrations for every catalog species", () => {
+  it("uses local species imagery and verifies every reviewed AI asset", () => {
     for (const species of commonSpecies) {
       const image = getSpeciesImage(species.id);
       assert.ok(image, species.id);
-      assert.ok(image.localSrc.startsWith("/species/"), species.id);
-      assert.ok(image.remoteSrc.startsWith("https://"), species.id);
-      assert.equal(image.license, "Public Domain");
-      assert.ok(speciesImageCatalog[species.id]?.sourceUrl.startsWith("https://"));
+      const src = image.kind === "ai-generated" || image.kind === "owner-photo" ? image.src : image.localSrc;
+      assert.ok(src.startsWith("/species/"), species.id);
+      assert.ok(existsSync(`public${src}`), species.id);
+      if (image.kind === "ai-generated") {
+        assert.ok(image.src.startsWith("/species/generated/"), species.id);
+        assert.equal(image.watermark, "lesterfish", species.id);
+        assert.match(image.caveat, /not a photograph/i, species.id);
+        assert.match(image.sha256, /^[a-f0-9]{64}$/, species.id);
+        assert.equal(createHash("sha256").update(readFileSync(`public${src}`)).digest("hex"), image.sha256, species.id);
+      }
     }
-    const walleye = getSpeciesById("walleye");
-    assert.ok(walleye?.image);
+    assert.equal(Object.keys(speciesImageCatalog).length, commonSpecies.length);
   });
 });

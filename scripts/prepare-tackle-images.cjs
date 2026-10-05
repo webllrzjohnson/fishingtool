@@ -69,7 +69,7 @@ async function addWatermark(file, expectedHash) {
 
 async function main() {
   const names = (await fs.readdir(sourceDir)).filter((name) => name.endsWith('.png')).sort();
-  if (names.length !== 30) throw new Error(`Expected 30 original guides, found ${names.length}`);
+  if (names.length !== 37) throw new Error(`Expected 37 original guides, found ${names.length}`);
   const mode = process.argv[2];
   if (mode && mode !== '--watermark-missing') throw new Error(`Unknown option: ${mode}`);
   if (mode === '--watermark-missing') {

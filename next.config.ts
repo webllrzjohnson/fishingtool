@@ -13,20 +13,6 @@ const nextConfig: NextConfig = {
       { source: "/trips/new", destination: "/", permanent: false },
     ];
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "upload.wikimedia.org",
-        pathname: "/wikipedia/commons/**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.fws.gov",
-        pathname: "/sites/default/files/**",
-      },
-    ],
-  },
 };
 
 export default nextConfig;

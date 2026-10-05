@@ -48,7 +48,7 @@ test("all pictured families and reel mechanisms have descriptive original SVG as
 });
 
 test("photographs are local, attributed and licensed with explicit fallback", () => {
-  assert.equal(Object.keys(tacklePhotos).length, 6);
+  assert.equal(Object.keys(tacklePhotos).length, 0);
   const ids = new Set<string>([...tackleFamilies.map((item) => item.id), ...reelTypes.map((item) => `reel-${item.id}`)]);
   for (const [id, photo] of Object.entries(tacklePhotos)) {
     assert.ok(ids.has(id), id);
@@ -62,7 +62,7 @@ test("photographs are local, attributed and licensed with explicit fallback", ()
     assert.match(resolved.licenseUrl, /^https:\/\//);
   }
   for (const id of ids) assert.ok(existsSync(asset(tacklePhoto(id)?.src ?? `/tackle/${id}.svg`)), id);
-  for (const id of ["roe-bead", "ned", "tube-ned", "worm-harness", "worm-float", "reel-line-counter"]) assert.equal(tacklePhoto(id), undefined, id);
+  for (const id of ["roe-bead", "ned", "tube-ned", "worm-harness", "worm-float", "reel-line-counter", "reel-spinning", "reel-baitcasting", "reel-spincast", "reel-fly", "reel-centerpin", "reel-ice"]) assert.equal(tacklePhoto(id), undefined, id);
   assert.equal(tacklePhoto("jig"), undefined);
   assert.equal(tacklePhoto("swimbait"), undefined);
   assert.equal(tacklePhoto("worm-plastic"), undefined);
@@ -84,7 +84,7 @@ test("photographs are local, attributed and licensed with explicit fallback", ()
   assert.equal(tacklePhoto("dry-fly"), undefined);
   assert.equal(generatedTackleImage("worm-float")!.src, "/tackle/generated/worm-float.png");
   assert.equal(tacklePhoto("bottom-rig"), undefined);
-  assert.match(tacklePhoto("reel-ice")!.subject, /spinning version not shown/);
+
   const picture = readFileSync(join(process.cwd(), "src/components/tackle/tackle-picture.tsx"), "utf8");
   assert.match(picture, /photo\.sourceUrl/);
   assert.match(picture, /photo\.licenseUrl/);
@@ -96,8 +96,8 @@ test("photographs are local, attributed and licensed with explicit fallback", ()
 });
 
 test("all generated infographics are local, distinguished from photos and individually screened", () => {
-  assert.equal(Object.keys(generatedTackleImages).length, 30);
-  const ids = new Set<string>(tackleFamilies.map((family) => family.id));
+  assert.equal(Object.keys(generatedTackleImages).length, 37);
+  const ids = new Set<string>([...tackleFamilies.map((family) => family.id), ...reelTypes.map((reel) => `reel-${reel.id}`)]);
   for (const [id, image] of Object.entries(generatedTackleImages)) {
     assert.ok(ids.has(id), id);
     assert.equal(tacklePhoto(id), undefined, `${id} must not mask a credited photograph`);
@@ -154,7 +154,27 @@ test("all generated infographics are local, distinguished from photos and indivi
   assert.match(generatedTackleImage("roe-bead")!.subject, /separate pegged bead/);
   assert.match(generatedTackleImage("roe-bead")!.caveat, /not automatically an artificial fly/);
   assert.ok(readFileSync(asset(generatedTackleImage("roe-bead")!.src)).length > 2_000_000);
-  assert.equal(generatedTackleImage("reel-line-counter"), undefined);
+  assert.match(generatedTackleImage("reel-line-counter")!.subject, /conventional line-counter trolling reel/);
+  assert.match(generatedTackleImage("reel-line-counter")!.caveat, /never exact lure depth/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-line-counter")!.src)).length > 2_000_000);
+  assert.match(generatedTackleImage("reel-baitcasting")!.subject, /low-profile baitcasting reel/);
+  assert.match(generatedTackleImage("reel-baitcasting")!.caveat, /star drag and side brake dial/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-baitcasting")!.src)).length > 2_000_000);
+  assert.match(generatedTackleImage("reel-spincast")!.subject, /closed-face spincast reel/);
+  assert.match(generatedTackleImage("reel-spincast")!.caveat, /rear thumb button/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-spincast")!.src)).length > 1_500_000);
+  assert.match(generatedTackleImage("reel-fly")!.subject, /large-arbor fly reel/);
+  assert.match(generatedTackleImage("reel-fly")!.caveat, /Match a fly reel/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-fly")!.src)).length > 1_500_000);
+  assert.match(generatedTackleImage("reel-centerpin")!.subject, /specialist centerpin/);
+  assert.match(generatedTackleImage("reel-centerpin")!.caveat, /no bail, crank handle or line counter/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-centerpin")!.src)).length > 1_500_000);
+  assert.match(generatedTackleImage("reel-spinning")!.subject, /front-drag spinning reel/);
+  assert.match(generatedTackleImage("reel-spinning")!.caveat, /fixed front-drag spool/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-spinning")!.src)).length > 1_500_000);
+  assert.match(generatedTackleImage("reel-ice")!.subject, /inline ice reel/);
+  assert.match(generatedTackleImage("reel-ice")!.caveat, /alternative to an ice spinning reel/);
+  assert.ok(readFileSync(asset(generatedTackleImage("reel-ice")!.src)).length > 2_000_000);
   const picture = readFileSync(join(process.cwd(), "src/components/tackle/tackle-picture.tsx"), "utf8");
   assert.match(picture, /AI-generated guide/);
   assert.match(picture, /generated\.caveat/);

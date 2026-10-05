@@ -13,7 +13,6 @@ export function SpeciesCard({ species }: { species: SpeciesProfile }) {
       {image ? (
         <div className="border-b border-slate-100 bg-slate-50 px-4 py-4">
           <SpeciesIllustration image={image} sizes="(max-width: 768px) 100vw, 320px" className="max-h-52" />
-          <p className="mt-2 text-xs text-slate-500">{image.alt} · {image.credit}</p>
         </div>
       ) : null}
       <div className="flex flex-1 flex-col p-5">

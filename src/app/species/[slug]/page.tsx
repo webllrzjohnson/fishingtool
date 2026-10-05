@@ -40,13 +40,6 @@ export default async function SpeciesDetailPage({ params }: Props) {
       {species.image ? (
         <div className="mt-6 max-w-2xl rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <SpeciesIllustration image={species.image} priority sizes="(max-width: 768px) 100vw, 640px" className="max-h-80" />
-          <p className="mt-3 text-xs text-slate-500">
-            {species.image.alt} · {species.image.credit} ·{" "}
-            <a href={species.image.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
-              Source
-            </a>
-            {" "}· {species.image.license}
-          </p>
         </div>
       ) : null}
       <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">{species.summary}</p>

@@ -23,7 +23,8 @@ describe("Ontario fish reference", () => {
       }
       const image = getSpeciesImage(fish.id);
       assert.ok(image, fish.id);
-      assert.ok(existsSync(`public${image.localSrc}`), fish.id);
+      const src = image.kind === "ai-generated" || image.kind === "owner-photo" ? image.src : image.localSrc;
+      assert.ok(existsSync(`public${src}`), fish.id);
       assert.match(image.alt.toLowerCase(), /illustration|photograph/, fish.id);
     }
   });
@@ -44,13 +45,11 @@ describe("Ontario fish reference", () => {
     ]);
     assert.equal(getSpeciesById("crappie")?.guideSources[0].url, "https://www.ontario.ca/page/black-crappie");
     assert.ok(!getSpeciesById("pacific-salmon")?.aliases.includes("pink salmon"));
-    for (const id of ["largemouth-bass", "crappie", "pacific-salmon"]) {
-      assert.match(getSpeciesImage(id)?.alt ?? "", /^Photograph/);
+    assert.match(getSpeciesImage("crappie")?.alt ?? "", /^AI-generated realistic black crappie/);
+    assert.match(getSpeciesImage("pacific-salmon")?.alt ?? "", /^AI-generated realistic Chinook salmon/);
+    for (const id of commonSpecies.map((species) => species.id)) {
+      assert.equal(getSpeciesImage(id)?.kind, "ai-generated", id);
     }
-    assert.match(getSpeciesImage("largemouth-bass")?.credit ?? "", /Ryan Hagerty/);
-    assert.match(getSpeciesImage("crappie")?.credit ?? "", /Brett Billings/);
-    assert.match(getSpeciesImage("pacific-salmon")?.credit ?? "", /Dan Cox/);
-    assert.match(getSpeciesImage("muskellunge")?.credit ?? "", /Timothy Knepp/);
   });
 
   it("presents search/count/empty and guidance labels on the index and details", () => {
@@ -68,5 +67,8 @@ describe("Ontario fish reference", () => {
     assert.match(detail, /species\.guideSources\.map/);
     assert.match(detail, /species\.identificationNote/);
     assert.match(nav, /href: "\/species", label: "Fish guide"/);
+    assert.match(readFileSync("src/components/species/species-illustration.tsx", "utf8"), /AI-generated illustration/);
+    assert.match(readFileSync("src/components/species/species-illustration.tsx", "utf8"), /image\.watermark} watermark/);
+    assert.doesNotMatch(readFileSync("src/components/species/species-illustration.tsx", "utf8"), /onError/);
   });
 });

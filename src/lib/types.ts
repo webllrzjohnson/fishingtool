@@ -49,15 +49,34 @@ export type BaitOption = {
   liveBaitWarning?: boolean;
 };
 
-export type SpeciesImage = {
+type LegacyPublicDomainSpeciesImage = {
+  kind?: "legacy-public-domain";
   alt: string;
-  /** Preferred bundled asset under /public/species when present. */
+  /** Legacy locally bundled reference retained while the AI-image migration continues. */
   localSrc: string;
   remoteSrc: string;
   credit: string;
   license: "Public Domain";
   sourceUrl: string;
 };
+
+export type AiGeneratedSpeciesImage = {
+  kind: "ai-generated";
+  alt: string;
+  src: string;
+  watermark: "lesterfish";
+  sha256: string;
+  caveat: string;
+};
+
+export type OwnerSpeciesPhoto = {
+  kind: "owner-photo";
+  alt: string;
+  src: string;
+  photographer: "Louie";
+};
+
+export type SpeciesImage = LegacyPublicDomainSpeciesImage | AiGeneratedSpeciesImage | OwnerSpeciesPhoto;
 
 export type SpeciesProfile = {
   id: string;
